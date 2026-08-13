@@ -43,7 +43,7 @@
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",
                 "Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
     font-size:16px; line-height:1.5;
-    padding:0 0 calc(40px + env(safe-area-inset-bottom));
+    padding:0 0 calc(88px + env(safe-area-inset-bottom));
     -webkit-tap-highlight-color:transparent;
   }
   .wrap{
@@ -66,7 +66,26 @@
   .sync[data-s="busy"]{background:var(--surface-2);color:var(--muted)}
   .sync[data-s="err"]{background:var(--warn-soft);color:var(--warn)}
 
-  .cyc{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;color:var(--muted)}
+  .cycbar{margin-bottom:12px}
+  .cycnow{font-size:13px;font-weight:700;color:var(--ink);padding-left:2px;margin-bottom:7px}
+  .cycnow b{color:var(--accent);font-weight:800}
+  .gobtn{border:1.5px solid var(--accent);background:var(--accent);color:var(--on-accent);
+    border-radius:10px;font-size:13px;font-weight:800;padding:8px 14px;white-space:nowrap}
+  .gobtn:disabled{background:var(--surface-2);border-color:var(--line);color:var(--muted);
+    opacity:.7;cursor:default}
+  .pasttag{font-size:10.5px;font-weight:800;background:var(--surface-2);color:var(--muted);
+    border:1px solid var(--line);padding:2px 7px;border-radius:999px}
+  .nocyc{background:var(--surface);border:1px dashed var(--line);border-radius:14px;
+    padding:34px 20px;text-align:center}
+  .nocyc .nct{font-size:15.5px;font-weight:800;letter-spacing:-.3px;margin-bottom:6px}
+  .nocyc .ncs{font-size:13px;color:var(--muted);line-height:1.7}
+  .nocyc .ncs b{color:var(--accent)}
+  .backbtn{width:100%;border:1.5px solid var(--line);background:var(--surface);
+    border-radius:10px;font-size:13px;font-weight:800;padding:10px;color:var(--accent);
+    box-shadow:var(--shadow)}
+  .cyccard{cursor:pointer}
+  .cyccard.viewing{outline:2px solid var(--accent);outline-offset:-1px}
+  .cyc{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
   .startpick{display:flex;align-items:center;gap:7px;background:var(--surface);
     border:1px solid var(--line);border-radius:10px;padding:6px 10px;box-shadow:var(--shadow)}
   .startpick .sl{font-size:11.5px;font-weight:800;color:var(--muted);white-space:nowrap}
@@ -77,6 +96,8 @@
   .cyc button{background:none;border:none;padding:6px 2px;color:var(--accent);
               font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
   .cycinfo{margin-top:6px;font-size:12.5px;color:var(--muted);font-weight:600;padding-left:2px}
+  .freehint{display:block;font-size:11.5px;color:var(--muted);opacity:.85;margin-top:2px}
+  .cyc button:disabled{opacity:.35;text-decoration:none;cursor:default}
 
   /* ─ week nav + day strip ─ */
   .stripcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;
@@ -148,12 +169,30 @@
   li[data-st="1"] .nm{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1.5px}
   li[data-st="2"] .nm{color:var(--warn)}
 
-  .mark{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);
-        background:transparent;font-size:16px;font-weight:800;display:grid;place-items:center;
-        color:var(--muted);transition:background .12s,border-color .12s,color .12s}
-  li[data-st="1"] .mark{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-  li[data-st="2"] .mark{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
-  @media (prefers-reduced-motion:reduce){ .mark{transition:none} }
+  /* 실행 — 담당자가 누르는 버튼 */
+  li .mk{flex:0 0 auto;width:38px;height:34px;border-radius:10px;border:1.5px solid var(--line);
+    background:var(--surface-2);display:grid;place-items:center;color:var(--muted);
+    transition:background .13s,border-color .13s,color .13s}
+  li .mk svg{width:19px;height:19px;display:block}
+  li[data-st="0"] .mk svg{opacity:.3}
+  li[data-st="1"] .mk{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  li[data-st="2"] .mk{background:var(--warn);border-color:var(--warn);color:#fff}
+
+  /* 확인 — 상대방이 눌러 확인하는 버튼 */
+  li .ck{flex:0 0 auto;width:32px;height:32px;border-radius:50%;
+    border:1.5px dashed var(--line);background:transparent;display:grid;place-items:center;
+    color:var(--line);transition:background .13s,border-color .13s,color .13s}
+  li .ck svg{width:15px;height:15px;display:block}
+  li[data-cf="1"] .ck{border-style:solid;border-color:var(--accent);
+    background:var(--accent-soft);color:var(--accent)}
+  @media (prefers-reduced-motion:reduce){ li .mk,li .ck{transition:none} }
+
+  /* 열 제목 */
+  .collegend{display:flex;justify-content:flex-end;gap:10px;padding:0 12px 0 0;
+    margin:0 0 5px;font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--muted)}
+  .collegend span{text-align:center}
+  .collegend .a{width:38px}
+  .collegend .b{width:32px}
 
   .empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;
          padding:22px 16px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
@@ -179,6 +218,82 @@
   .rules b{color:var(--accent)}
   .rules .sm{color:var(--muted);font-size:12.5px}
 
+  /* ─ 정산 ─ */
+  .srow{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--line)}
+  .srow:first-child{border-top:none}
+  .srow .stxt{flex:1;min-width:0}
+  .srow .snm{font-size:14.5px;font-weight:800;letter-spacing:-.3px;
+             display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .srow .sdate{font-size:11.5px;font-weight:600;color:var(--muted);letter-spacing:0}
+  .srow .sown{font-size:11px;font-weight:800;background:var(--accent-soft);color:var(--accent);
+              padding:2px 7px;border-radius:999px}
+  .srow .ssub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:600}
+  .srow .ssub b{font-weight:800}
+  .srow .ssub .g{color:var(--accent)}
+  .srow .ssub .r{color:var(--warn)}
+  .srow[data-locked="1"]{background:var(--surface-2)}
+  .lockbtn{flex:0 0 auto;display:flex;align-items:center;gap:5px;
+    border:1.5px solid var(--line);background:var(--surface);border-radius:999px;
+    font-size:12px;font-weight:800;padding:7px 12px;color:var(--muted)}
+  .lockbtn svg{width:13px;height:13px}
+  .lockbtn[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+  .settlenote{font-size:11.5px;color:var(--muted);line-height:1.6;margin:7px 4px 0}
+  .settlenote b{color:var(--ink)}
+
+  /* 사이클 카드 — 정산 화면은 사이클을 최신순으로 전부 나열한다 */
+  .settle{background:none;border:none;box-shadow:none;border-radius:0;
+          display:flex;flex-direction:column;gap:12px}
+  .cyccard{display:block;padding:0;border:1px solid var(--line);border-radius:14px;
+    background:var(--surface);box-shadow:var(--shadow);overflow:hidden}
+  .cyccard.cur{border-color:var(--accent)}
+  .cychead{display:flex;align-items:center;gap:8px;padding:10px 12px;
+    background:var(--surface-2);border-bottom:1px solid var(--line)}
+  .cyctitle{font-size:13.5px;font-weight:800;letter-spacing:-.3px}
+  .curtag{font-size:10.5px;font-weight:800;background:var(--accent);color:var(--on-accent);
+    padding:2px 7px;border-radius:999px}
+  .curtag.wait{background:var(--surface);color:var(--muted);border:1px solid var(--line)}
+  .cyccard[data-state="done"]{opacity:.92}
+  .cyccard[data-state="done"] .cychead{background:var(--surface)}
+  .delcyc{flex:0 0 auto;width:24px;height:24px;border:none;background:none;padding:0;
+    display:grid;place-items:center;color:var(--muted);opacity:.5;border-radius:6px}
+  .delcyc svg{width:13px;height:13px}
+  .delcyc:hover{opacity:1;color:var(--warn)}
+  .settle.inner{padding:10px 12px 12px}
+  #donesec summary .cnt{display:inline-block;min-width:18px;text-align:center;
+    font-size:11px;font-weight:800;background:var(--surface-2);color:var(--muted);
+    padding:1px 6px;border-radius:999px;margin-left:4px}
+  .cycsum{margin-left:auto;font-size:13px;font-weight:800}
+  .cycsum .g{color:var(--accent)} .cycsum .r{color:var(--warn)}
+  .cycfoot{padding:9px 12px;border-top:1px solid var(--line);background:var(--surface-2);
+    font-size:11.5px;font-weight:600;color:var(--muted)}
+  .cycfoot .g{color:var(--accent)} .cycfoot .r{color:var(--warn)}
+
+  /* ─ 하단 탭바 ─ */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:9;
+    display:flex;background:var(--surface);border-top:1px solid var(--line);
+    padding:5px max(6px, env(safe-area-inset-left)) calc(5px + env(safe-area-inset-bottom));
+    backdrop-filter:saturate(1.2) blur(8px)}
+  .tabbar button{flex:1;border:none;background:none;padding:7px 0 5px;
+    display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);border-radius:10px}
+  .tabbar button[aria-pressed="true"]{color:var(--accent)}
+  .tabbar .ti svg{width:22px;height:22px;display:block}
+  .tabbar .tl{font-size:10.5px;font-weight:800;letter-spacing:.2px}
+
+  /* 마감된 주차 */
+  .lockbanner{display:flex;align-items:center;gap:7px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:12px;padding:10px 13px;
+    font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px}
+  .lockbanner svg{width:15px;height:15px;flex:0 0 auto}
+  #list[data-locked="1"] ul{opacity:.6}
+  #list[data-locked="1"] li .mk,#list[data-locked="1"] li .ck{opacity:.5}
+
+  .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));
+    transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--bg);
+    font-size:13px;font-weight:700;padding:10px 16px;border-radius:999px;
+    opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;z-index:10}
+  .toast[data-show="1"]{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (prefers-reduced-motion:reduce){ .toast{transition:none} }
+
   .setbody{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
   .field{display:flex;flex-direction:column;gap:5px}
   .field label{font-size:11.5px;font-weight:800;color:var(--muted)}
@@ -198,7 +313,9 @@
     .pill{padding:3px 7px;font-size:11px}
     .day .dd{font-size:15px}
     li .nm{font-size:14.5px}
-    .mark{width:34px;height:34px}
+    li .mk{width:34px;height:32px}
+    li .ck{width:29px;height:29px}
+    .collegend .a{width:34px} .collegend .b{width:29px}
   }
 </style>
 </head>
@@ -211,17 +328,29 @@
     <h1>집안일 3주 사이클</h1>
     <span class="sync" id="sync">로컬 저장</span>
   </div>
-  <div class="cyc">
-    <label class="startpick">
-      <span class="sl">시작일</span>
-      <input type="date" id="startin" aria-label="사이클 시작일">
-    </label>
-    <button id="today" type="button">오늘로</button>
-  </div>
-  <div class="cycinfo num" id="cycinfo"></div>
 </header>
 
-<div class="stripcard">
+<div id="v-check">
+
+<div class="cycbar">
+  <div class="cycnow num" id="cycinfo"></div>
+  <div class="cyc" id="newcyc">
+    <label class="startpick">
+      <span class="sl">새 사이클</span>
+      <input type="date" id="startin" aria-label="새 사이클 시작일">
+    </label>
+    <button id="startbtn" type="button" class="gobtn">시작하기</button>
+  </div>
+  <button id="backcyc" type="button" class="backbtn" hidden>← 진행 중 사이클로 돌아가기</button>
+  <div class="freehint" id="freehint"></div>
+</div>
+
+<div class="nocyc" id="nocyc" hidden>
+  <div class="nct">등록된 사이클이 없어요</div>
+  <div class="ncs">위에서 시작일을 고르고 <b>시작하기</b>를 누르면<br>3주 사이클이 시작됩니다.</div>
+</div>
+
+<div class="stripcard" id="stripcard">
   <div class="wknav">
     <div class="seg" id="seg" role="group" aria-label="주차 선택"></div>
     <div class="tally">
@@ -238,23 +367,49 @@
   </div>
 </div>
 
-<div class="dayhead">
+<div class="dayhead" id="dayhead">
   <h2 id="dtitle" class="num"></h2>
   <span class="todaytag" id="dtoday" hidden>오늘</span>
   <span class="prog num" id="dprog"></span>
   <button type="button" class="offbtn" id="offbtn" aria-pressed="false">제외</button>
 </div>
 
+<div class="collegend" id="collegend"><span class="a">실행</span><span class="b">확인</span></div>
 <div id="list"></div>
 
-<section>
+<section id="wsec">
   <div class="shead"><h2>이번 주 목표</h2><span class="note">횟수로 채우는 항목</span></div>
+  <div class="collegend"><span class="a">실행</span><span class="b">확인</span></div>
   <ul id="weekly"></ul>
 </section>
 
 <section id="msec">
   <div class="shead"><h2>매달 항목</h2><span class="note" id="mlabel"></span></div>
+  <div class="collegend"><span class="a">실행</span><span class="b">확인</span></div>
   <ul id="monthly"></ul>
+</section>
+
+<div class="foot" id="checkfoot">
+  실행 버튼을 누를 때마다 <b>완료 → 미이행 → 취소</b> 순서로 바뀝니다.
+  여행 등으로 집을 비운 날은 날짜 옆 <b>제외</b> 버튼을 누르면 집계에서 빠집니다.
+</div>
+
+</div><!-- /v-check -->
+
+<div id="v-settle" hidden>
+
+<section style="margin-top:2px">
+  <div class="shead"><h2>진행 · 대기</h2><span class="note" id="settlerange"></span></div>
+  <ul id="settle" class="settle"></ul>
+  <div class="settlenote">정산완료를 누르면 그 주차는 <b>마감</b>되어 더 이상 수정할 수 없습니다.
+    3주 전체를 마감하거나 기간이 지나면 <b>종료</b>로 옮겨집니다.</div>
+</section>
+
+<section id="donesec" hidden>
+  <details>
+    <summary>종료된 사이클 <span class="cnt num" id="donecount"></span></summary>
+    <ul id="settledone" class="settle inner"></ul>
+  </details>
 </section>
 
 <section>
@@ -288,12 +443,18 @@
   </details>
 </section>
 
-<div class="foot">
-  동그라미를 누를 때마다 <b>완료 → 미이행 → 취소</b> 순서로 바뀝니다.
-  여행 등으로 집을 비운 날은 날짜 옆 <b>제외</b> 버튼을 누르면 집계에서 빠집니다.
-</div>
+</div><!-- /v-settle -->
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
+
+<nav class="tabbar" id="tabbar">
+  <button type="button" data-view="check" aria-pressed="true">
+    <span class="ti" id="ti-check"></span><span class="tl">체크</span></button>
+  <button type="button" data-view="settle" aria-pressed="false">
+    <span class="ti" id="ti-settle"></span><span class="tl">정산</span></button>
+</nav>
 
 <script>
 "use strict";
@@ -333,7 +494,15 @@ const MONTHLY = [
 
 const CATS = ['화장실','주방','거실','세탁','청소'];
 const DOW = ['일','월','화','수','목','금','토'];
-const MARK = ['', '○', '✕'];
+const SVG = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${d}"/></svg>`;
+const IC_CHECK = SVG('M4.5 12.6l4.8 4.8L19.5 7.2');
+const IC_X     = SVG('M6.5 6.5l11 11M17.5 6.5l-11 11');
+const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5"
+  width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
+/* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
+const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
 /* 기본 동기화 주소 — 설정에서 비우면 이 기기에만 저장된다 */
 const DEFAULT_SYNC = 'https://script.google.com/macros/s/AKfycbzLToZF2ukX94M6qpdymUmPL0fQE-T7_CJjsVL8MFklaoff5COX4DmHS-USp-ixGPqhgg/exec';
@@ -352,6 +521,11 @@ let pending = [];      // 아직 서버에 못 보낸 변경
 let syncUrl = '';
 let selWeek = 0, selDay = 0;
 let busy = false;
+let view = 'check';      // 'check' | 'settle'
+let pickStart = null;    // 달력에서 고른 값. '시작하기' 를 누를 때까지 등록되지 않는다
+/* S.start 는 '진행 중인 사이클', viewCycle 은 '체크 탭에서 보고 있는 사이클'.
+   둘을 분리해야 새 사이클을 시작한 뒤에도 지난 사이클을 열어볼 수 있다. */
+let viewCycle = null;
 
 function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } }
 function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
@@ -378,6 +552,21 @@ function migrateV1(){
   Object.keys(old.months || {}).forEach(m =>
     Object.keys(old.months[m]).forEach(id => { out['m|' + m + '|' + id] = String(old.months[m][id]); }));
   return out;
+}
+
+let toastTimer = null;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.dataset.show = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.dataset.show = '0'; }, 1800);
+}
+
+/* 마감된 주차는 편집 불가 */
+function blocked(){
+  if (isLocked(selWeek)){ toast(`${selWeek+1}주차는 정산 마감됐어요`); return true; }
+  return false;
 }
 
 /* 값 변경의 유일한 통로 — 로컬 반영 + 전송 대기열 적재 */
@@ -453,14 +642,31 @@ function iso(d){
 function parse(s){ const [y,m,d] = String(s).split('-').map(Number); return new Date(y, m-1, d); }
 function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
 
-const startDate = () => parse(S.start);
+/* 체크 탭이 보고 있는 사이클의 시작일. 등록된 사이클이 없으면 null */
+function baseStart(){
+  if (viewCycle && S['cyc|' + viewCycle]) return viewCycle;
+  return currentCycle();
+}
+const startDate = () => parse(baseStart());
 const dayIndex = ds => Math.round((parse(ds) - startDate()) / 86400000);
 function dateOf(i){ return addDays(startDate(), i); }
 function isoOf(i){ return iso(dateOf(i)); }
 
-/* ══ 조회 ══ */
-function markOf(i, id){ return Number(S['d|' + isoOf(i) + '|' + id] || 0); }
-function isOffDay(i){ return !!S['x|' + isoOf(i)]; }
+/* ══ 조회 ══
+   모든 계산은 '실제 날짜' 기준이다. 사이클 시작일이 바뀌어도 과거 기록이
+   어긋나지 않고, 지난 사이클의 정산도 그대로 다시 계산할 수 있다. */
+function dayFrom(startISO, i){ return addDays(parse(startISO), i); }
+function isoFrom(startISO, i){ return iso(dayFrom(startISO, i)); }
+
+function markAt(ds, id){ return Number(S['d|' + ds + '|' + id] || 0); }
+function confAt(ds, id){ return Number(S['c|' + ds + '|' + id] || 0); }
+function offAt(ds){ return !!S['x|' + ds]; }
+
+function markOf(i, id){ return markAt(isoOf(i), id); }
+/* 확인자 체크 — 실행과 별개로 상대방이 누른다 */
+function confOf(i, id){ return confAt(isoOf(i), id); }
+function monthConf(mk, id){ return Number(S['cm|' + mk + '|' + id] || 0); }
+function isOffDay(i){ return offAt(isoOf(i)); }
 function monthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
 function monthMark(mk, id){ return Number(S['m|' + mk + '|' + id] || 0); }
 
@@ -470,35 +676,160 @@ function applies(t, dow){
   if (t.when === 'days') return t.days.includes(dow);
   return false;
 }
-function scheduled(i){
-  const dow = dateOf(i).getDay();
+function scheduledAt(ds){
+  const dow = parse(ds).getDay();
   return TASKS.filter(t => applies(t, dow));
 }
-function weekCount(w, id){
-  let n = 0;
-  for (let i = w*7; i < w*7+7; i++) if (markOf(i, id) === 1) n++;
-  return n;
+function scheduled(i){ return scheduledAt(isoOf(i)); }
+
+/* ── 주차 단위 계산 (사이클 시작일을 인자로 받는다) ── */
+function weekDays(startISO, w){
+  const out = [];
+  for (let i = w*7; i < w*7+7; i++) out.push(isoFrom(startISO, i));
+  return out;
 }
-function offCount(w){
-  let n = 0;
-  for (let i = w*7; i < w*7+7; i++) if (isOffDay(i)) n++;
-  return n;
+function weekCountAt(startISO, w, id){
+  return weekDays(startISO, w).filter(ds => markAt(ds, id) === 1).length;
+}
+function offCountAt(startISO, w){
+  return weekDays(startISO, w).filter(ds => offAt(ds)).length;
 }
 /* 주간 횟수 목표를 제외일만큼 비례 축소 */
-function targetOf(w, t){
-  const o = offCount(w);
+function targetAt(startISO, w, t){
+  const o = offCountAt(startISO, w);
   return o === 0 ? t.target : Math.max(0, Math.round(t.target * (7 - o) / 7));
+}
+
+/* 주차 마감(정산완료) — 키를 그 주 첫날 날짜로 잡아 시작일이 바뀌어도 어긋나지 않게 한다 */
+function lockKeyAt(startISO, w){ return 'lk|' + isoFrom(startISO, w*7); }
+function isLockedAt(startISO, w){ return !!S[lockKeyAt(startISO, w)]; }
+
+/* 담당자도 주 첫날 날짜로 저장한다. 예전의 o|0 · o|1 · o|2 는 현재 사이클에서만 읽어준다 */
+function ownerKeyAt(startISO, w){ return 'o|' + isoFrom(startISO, w*7); }
+function ownerAt(startISO, w){
+  return S[ownerKeyAt(startISO, w)] || '';
+}
+
+/* 주차별 집계 — 정산 화면과 상단 배지가 같은 계산을 쓴다 */
+function tallyWeek(startISO, w){
+  let ok = 0, no = 0, conf = 0, offDays = 0;
+  const now = new Date(); now.setHours(0,0,0,0);
+  for (const ds of weekDays(startISO, w)){
+    if (offAt(ds)){ offDays++; continue; }
+    const past = parse(ds) < now;
+    for (const t of scheduledAt(ds)){
+      const m = markAt(ds, t.id);
+      if (m === 1) ok++;
+      else if (m === 2) no++;
+      else if (past) no++;
+      if (confAt(ds, t.id)) conf++;
+    }
+  }
+  for (const t of TASKS.filter(x => x.when === 'count')){
+    const n = weekCountAt(startISO, w, t.id);
+    ok += n;
+    if (parse(isoFrom(startISO, w*7+6)) < now) no += Math.max(0, targetAt(startISO, w, t) - n);
+  }
+  return { ok, no, conf, offDays };
+}
+
+/* 체크 탭(= 보고 있는 사이클)용 짧은 이름들 */
+const weekCount = (w, id) => weekCountAt(baseStart(), w, id);
+const offCount  = w => offCountAt(baseStart(), w);
+const targetOf  = (w, t) => targetAt(baseStart(), w, t);
+const lockKey   = w => lockKeyAt(baseStart(), w);
+const isLocked  = w => isLockedAt(baseStart(), w);
+const weekTally = w => tallyWeek(baseStart(), w);
+
+/* ── 사이클 기록 ──
+   시작일을 지정할 때마다 cyc|<시작일> 로 남겨서, 지난 사이클도 정산에서 볼 수 있게 한다 */
+function cycleList(){
+  return Object.keys(S)
+    .filter(k => k.indexOf('cyc|') === 0)
+    .map(k => k.slice(4))
+    .sort().reverse();              // 최신 사이클이 위로
+}
+
+/* '진행 중' 사이클 — 오늘을 포함하는 것, 없으면 이미 시작한 것 중 최신 */
+function currentCycle(){
+  const cs = cycleList();
+  if (!cs.length) return null;
+  const t = iso(new Date());
+  return cs.find(c => c <= t && t <= isoFrom(c, 20))
+      || cs.find(c => c <= t)
+      || cs[cs.length - 1];
+}
+
+/* 사이클이 차지한 날짜 구간들 */
+function cycleRanges(){
+  return cycleList().map(cs => ({ cs: cs, a: cs, b: isoFrom(cs, 20) }));
+}
+/* 비어 있는 가장 이른 시작일 — 달력의 min 으로 쓴다 */
+function nextFreeStart(){
+  const ends = cycleRanges().map(r => r.b).sort();
+  if (!ends.length) return null;
+  return iso(addDays(parse(ends[ends.length - 1]), 1));
+}
+/* 3주 구간이 기존 사이클과 겹치면 그 사이클을 돌려준다 */
+function overlapWith(ds, ignore){
+  const a = parse(ds), b = dayFrom(ds, 20);
+  return cycleRanges().find(r =>
+    r.cs !== ignore && !(b < parse(r.a) || a > parse(r.b))) || null;
 }
 
 /* ══ 렌더 ══ */
 function render(){
   refreshBadge();
 
-  const s = startDate(), e = addDays(s, 20);
+  // 뷰 전환
+  document.getElementById('v-check').hidden = view !== 'check';
+  document.getElementById('v-settle').hidden = view !== 'settle';
+  document.querySelectorAll('#tabbar button').forEach(b =>
+    b.setAttribute('aria-pressed', b.dataset.view === view ? 'true' : 'false'));
+
+  const base = baseStart();
+  const noCyc = !base;
+  const past = !noCyc && base !== currentCycle();
+
+  document.getElementById('cycinfo').innerHTML = noCyc ? '' :
+    `${past ? '<span class="pasttag">지난 사이클</span>' : '진행 중'} &nbsp;<b>${
+      (() => { const s0 = parse(base), e0 = dayFrom(base, 20);
+        return `${s0.getMonth()+1}월 ${s0.getDate()}일 (${DOW[s0.getDay()]}) ~ ${e0.getMonth()+1}월 ${e0.getDate()}일 (${DOW[e0.getDay()]})`; })()
+    }</b>`;
+
+  // 지난 사이클을 보는 중이면 새 사이클 시작 UI 대신 '돌아가기' 를 보여준다
+  document.getElementById('newcyc').hidden = past;
+  document.getElementById('backcyc').hidden = !past;
+
+  // 새 사이클 — 날짜는 고르기만 하고 '시작하기' 를 눌러야 등록된다.
+  // 특정 날짜만 비활성화하는 기능이 달력에 없으므로 min 은 걸지 않고 검증으로 막는다.
   const si = document.getElementById('startin');
-  if (si.value !== S.start) si.value = S.start;
-  document.getElementById('cycinfo').textContent =
-    `${s.getMonth()+1}월 ${s.getDate()}일 (${DOW[s.getDay()]}) ~ ${e.getMonth()+1}월 ${e.getDate()}일 (${DOW[e.getDay()]}) · 3주`;
+  const nf = nextFreeStart();
+  if (document.activeElement !== si){
+    const want = pickStart || nf || iso(new Date());
+    if (si.value !== want) si.value = want;
+  }
+  const pick = si.value;
+  const ov = pick ? overlapWith(pick, pick) : null;
+  const ok = !!pick && !ov;
+  document.getElementById('startbtn').disabled = !ok;
+
+  const fh = document.getElementById('freehint');
+  if (ov){
+    const oa = parse(ov.a), ob = parse(ov.b);
+    fh.textContent = `${oa.getMonth()+1}/${oa.getDate()} ~ ${ob.getMonth()+1}/${ob.getDate()} 사이클과 겹쳐요`;
+  } else if (ok){
+    const pe = dayFrom(pick, 20);
+    fh.textContent = `${parse(pick).getMonth()+1}/${parse(pick).getDate()} ~ ${pe.getMonth()+1}/${pe.getDate()} 로 3주 시작`;
+  } else fh.textContent = '';
+
+  // 등록된 사이클이 없으면 체크 화면을 감춘다
+  ['stripcard','dayhead','collegend','list','wsec','msec','checkfoot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.hidden = noCyc;
+  });
+  document.getElementById('nocyc').hidden = !noCyc;
+  if (noCyc){ renderSettle(); syncField('syncurl', syncUrl); return; }
 
   // 3주차 = 매달 항목이 붙는 주. 미완료가 남아 있으면 버튼에 점 표시
   const mk3 = monthKey(dateOf(14));
@@ -523,7 +854,7 @@ function render(){
 
   // 주차별 담당자
   document.getElementById('ownerlabel').textContent = `${selWeek+1}주차 담당자`;
-  syncField('ownerin', S['o|' + selWeek] || '');
+  syncField('ownerin', ownerAt(baseStart(), selWeek));
 
   const d = dateOf(selDay);
   document.getElementById('dtitle').textContent =
@@ -540,7 +871,17 @@ function render(){
   document.getElementById('dprog').textContent =
     off ? '' : (sch.length ? `${done} / ${sch.length}` : '');
 
-  document.getElementById('list').innerHTML = off
+  const locked = isLocked(selWeek);
+  const listEl = document.getElementById('list');
+  listEl.dataset.locked = locked ? 1 : 0;
+  document.getElementById('offbtn').disabled = locked;
+  document.getElementById('ownerin').readOnly = locked;
+  document.getElementById('collegend').hidden = off || sch.length === 0;
+
+  const lockBanner = locked
+    ? `<div class="lockbanner">${IC_LOCK}${selWeek+1}주차는 정산 마감되어 수정할 수 없습니다</div>`
+    : '';
+  listEl.innerHTML = lockBanner + (off
     ? `<div class="offnote">이 날은 집계에서 제외됩니다
          <span>여행 · 외박 등으로 집을 비운 날. 미이행으로 계산되지 않아요.</span></div>`
     : sch.length === 0
@@ -549,8 +890,9 @@ function render(){
         <div class="group">
           <div class="glabel">${c}</div>
           <ul>${sch.filter(t => t.cat === c).map(t => row(t, markOf(selDay, t.id),
-                t.when === 'weekend' ? '<span class="badge wk">주말</span>' : '')).join('')}</ul>
-        </div>`).join('');
+                t.when === 'weekend' ? '<span class="badge wk">주말</span>' : '',
+                null, confOf(selDay, t.id))).join('')}</ul>
+        </div>`).join(''));
 
   // 주간 횟수 목표
   document.getElementById('weekly').innerHTML =
@@ -559,46 +901,113 @@ function render(){
       const n = weekCount(selWeek, t.id), hit = n >= tg;
       return row(t, markOf(selDay, t.id),
         `<span class="badge${hit?' done':''} num">${n} / ${tg}</span>`,
-        tg !== t.target ? `제외일 반영 (원래 주 ${t.target}회)` : t.cat);
+        tg !== t.target ? `제외일 반영 (원래 주 ${t.target}회)` : t.cat,
+        confOf(selDay, t.id));
     }).join('');
 
   // 매달 항목은 3주차에만 (시트 구조: 1·2주차 표는 동일, 3주차 표에만 '매달' 열이 있음)
   const mk = monthKey(d);
-  document.getElementById('msec').hidden = selWeek !== 2;
+  document.getElementById('msec').hidden = noCyc || selWeek !== 2;
   document.getElementById('mlabel').textContent = `${d.getMonth()+1}월 · 주말에`;
   document.getElementById('monthly').innerHTML = MONTHLY.map(t => {
-    const st = monthMark(mk, t.id);
-    return `<li data-st="${st}">
+    const st = monthMark(mk, t.id), cf = monthConf(mk, t.id);
+    return `<li data-st="${st}" data-cf="${cf ? 1 : 0}">
       <div class="txt"><div class="nm">${t.name}</div><div class="sb">${t.cat}</div></div>
-      <button type="button" class="mark" data-mm="${t.id}" aria-label="${t.name} 상태 변경">${MARK[st]}</button></li>`;
+      <button type="button" class="mk" data-mm="${t.id}"
+        aria-label="${t.name} 실행 상태 변경">${MARK_ICON[st]}</button>
+      <button type="button" class="ck" data-cmm="${t.id}" aria-pressed="${cf ? 'true' : 'false'}"
+        aria-label="${t.name} 확인">${IC_CHECK}</button></li>`;
   }).join('');
 
   // 주차 집계
-  let ok = 0, no = 0, offDays = 0;
-  const now = new Date(); now.setHours(0,0,0,0);
-  for (let i = selWeek*7; i < selWeek*7+7; i++){
-    if (isOffDay(i)){ offDays++; continue; }
-    const past = dateOf(i) < now;
-    for (const t of scheduled(i)){
-      const m = markOf(i, t.id);
-      if (m === 1) ok++;
-      else if (m === 2) no++;
-      else if (past) no++;
-    }
-  }
-  for (const t of TASKS.filter(x => x.when === 'count')){
-    const n = weekCount(selWeek, t.id);
-    ok += n;
-    if (dateOf(selWeek*7+6) < now) no += Math.max(0, targetOf(selWeek, t) - n);
-  }
-  document.getElementById('t-ok').textContent = `이행 ${ok}`;
-  document.getElementById('t-no').textContent = `미이행 ${no}`;
+  const tw = weekTally(selWeek);
+  document.getElementById('t-ok').textContent = `이행 ${tw.ok}`;
+  document.getElementById('t-no').textContent = `미이행 ${tw.no}`;
   const toff = document.getElementById('t-off');
-  toff.hidden = offDays === 0;
-  toff.textContent = `제외 ${offDays}일`;
+  toff.hidden = tw.offDays === 0;
+  toff.textContent = `제외 ${tw.offDays}일`;
+
+  renderSettle();
 
   // 설정 입력값 반영 (포커스 중이면 건드리지 않음)
   syncField('syncurl', syncUrl);
+}
+
+/* 사이클 상태 — 3주 전체 마감 또는 기간 종료면 'done' */
+function cycleState(cs){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const end = dayFrom(cs, 20);
+  if ([0,1,2].every(w => isLockedAt(cs, w))) return 'done';
+  if (end < today) return 'done';
+  if (parse(cs) > today) return 'wait';
+  return 'active';
+}
+
+const STATE_TAG = {
+  active: '<span class="curtag">진행 중</span>',
+  wait:   '<span class="curtag wait">대기</span>',
+  done:   '',
+};
+
+/* 정산 화면 — 실행했던 사이클을 진행·대기 / 종료로 나눠 최신순으로 나열한다 */
+function renderSettle(){
+  const md = (d) => `${d.getMonth()+1}/${d.getDate()}`;
+  const cycles = cycleList();
+
+  const card = (cs) => {
+    const a = parse(cs), b = dayFrom(cs, 20);
+    const st = cycleState(cs);
+    const cur = cs === currentCycle();
+    const sum = { ok:0, no:0, conf:0, offDays:0 };
+
+    const rows = [0,1,2].map(w => {
+      const t = tallyWeek(cs, w), lk = isLockedAt(cs, w);
+      sum.ok += t.ok; sum.no += t.no; sum.conf += t.conf; sum.offDays += t.offDays;
+      const wa = dayFrom(cs, w*7), wb = dayFrom(cs, w*7+6);
+      const own = ownerAt(cs, w);
+      return `<div class="srow" data-locked="${lk ? 1 : 0}">
+        <div class="stxt">
+          <div class="snm">${w+1}주차
+            <span class="sdate num">${md(wa)} ~ ${md(wb)}</span>
+            ${own ? `<span class="sown">${own}</span>` : ''}</div>
+          <div class="ssub num">
+            <b class="g">이행 ${t.ok}</b> · <b class="r">미이행 ${t.no}</b> · 확인 ${t.conf}${
+            t.offDays ? ` · 제외 ${t.offDays}일` : ''}</div>
+        </div>
+        <button type="button" class="lockbtn" data-lock="${w}" data-cs="${cs}"
+          aria-pressed="${lk ? 'true' : 'false'}">${lk ? IC_LOCK + '마감' : '정산완료'}</button>
+      </div>`;
+    }).join('');
+
+    return `<li class="cyccard${cur ? ' cur' : ''}${cs === baseStart() ? ' viewing' : ''}"
+      data-state="${st}" data-open="${cs}">
+      <div class="cychead">
+        <span class="cyctitle num">${md(a)} ~ ${md(b)}</span>
+        ${STATE_TAG[st]}
+        <span class="cycsum num"><b class="g">${sum.ok}</b> / <b class="r">${sum.no}</b></span>
+        <button type="button" class="delcyc" data-del="${cs}"
+          aria-label="이 사이클 기록 삭제">${IC_X}</button>
+      </div>
+      ${rows}
+      <div class="cycfoot num">
+        3주 합계 &nbsp;<b class="g">이행 ${sum.ok}</b> · <b class="r">미이행 ${sum.no}</b>
+        · 확인 ${sum.conf}${sum.offDays ? ` · 제외 ${sum.offDays}일` : ''}
+      </div>
+    </li>`;
+  };
+
+  const live = cycles.filter(cs => cycleState(cs) !== 'done');
+  const done = cycles.filter(cs => cycleState(cs) === 'done');
+
+  document.getElementById('settle').innerHTML = live.length
+    ? live.map(card).join('')
+    : `<div class="empty">진행 중인 사이클이 없어요.<br>체크 탭에서 <b>시작일</b>을 지정하면 새 사이클이 시작됩니다.</div>`;
+  document.getElementById('settlerange').textContent =
+    live.length > 1 ? `${live.length}개` : '';
+
+  document.getElementById('donesec').hidden = done.length === 0;
+  document.getElementById('donecount').textContent = done.length ? `${done.length}` : '';
+  document.getElementById('settledone').innerHTML = done.map(card).join('');
 }
 
 function syncField(id, val){
@@ -606,18 +1015,24 @@ function syncField(id, val){
   if (el && document.activeElement !== el && el.value !== val) el.value = val;
 }
 
-function row(t, st, extra, subOverride){
-  return `<li data-st="${st}">
+function row(t, st, extra, subOverride, cf){
+  return `<li data-st="${st}" data-cf="${cf ? 1 : 0}">
     <div class="txt">
       <div class="nm">${t.name}${extra || ''}</div>
       ${t.sub || subOverride ? `<div class="sb">${t.sub || subOverride}</div>` : ''}
     </div>
-    <button type="button" class="mark" data-mk="${t.id}" aria-label="${t.name} 상태 변경">${MARK[st]}</button>
+    <button type="button" class="mk" data-mk="${t.id}"
+      aria-label="${t.name} 실행 상태 변경">${MARK_ICON[st]}</button>
+    <button type="button" class="ck" data-ck="${t.id}" aria-pressed="${cf ? 'true' : 'false'}"
+      aria-label="${t.name} 확인">${IC_CHECK}</button>
   </li>`;
 }
 
 /* ══ 이벤트 ══ */
 document.addEventListener('click', ev => {
+  const tab = ev.target.closest('#tabbar button');
+  if (tab){ view = tab.dataset.view; render(); window.scrollTo(0, 0); return; }
+
   const seg = ev.target.closest('#seg button');
   if (seg){ selWeek = +seg.dataset.w; selDay = selWeek*7; render(); return; }
 
@@ -626,43 +1041,135 @@ document.addEventListener('click', ev => {
 
   const mk = ev.target.closest('[data-mk]');
   if (mk){
+    if (blocked()) return;
     const id = mk.dataset.mk;
     const next = (markOf(selDay, id) + 1) % 3;
     setKey('d|' + isoOf(selDay) + '|' + id, next || null);
     return;
   }
 
+  const ck = ev.target.closest('[data-ck]');
+  if (ck){
+    if (blocked()) return;
+    const id = ck.dataset.ck;
+    setKey('c|' + isoOf(selDay) + '|' + id, confOf(selDay, id) ? null : '1');
+    return;
+  }
+
   const mm = ev.target.closest('[data-mm]');
   if (mm){
+    if (blocked()) return;
     const key = monthKey(dateOf(selDay));
     const next = (monthMark(key, mm.dataset.mm) + 1) % 3;
     setKey('m|' + key + '|' + mm.dataset.mm, next || null);
+    return;
+  }
+
+  const cmm = ev.target.closest('[data-cmm]');
+  if (cmm){
+    if (blocked()) return;
+    const key = monthKey(dateOf(selDay));
+    setKey('cm|' + key + '|' + cmm.dataset.cmm, monthConf(key, cmm.dataset.cmm) ? null : '1');
+    return;
+  }
+
+  // 사이클 기록 삭제 (체크 기록은 날짜에 남아 있어 지워지지 않는다)
+  const dl = ev.target.closest('[data-del]');
+  if (dl){
+    const cs = dl.dataset.del;
+    const a = parse(cs), b = dayFrom(cs, 20);
+    const last = cycleList().length <= 1;
+    if (!confirm(`${a.getMonth()+1}/${a.getDate()} ~ ${b.getMonth()+1}/${b.getDate()} 사이클을 목록에서 지울까요?${
+      last ? '\n\n마지막 사이클입니다. 지우면 새 사이클을 시작해야 합니다.' : ''
+    }\n\n체크 기록 자체는 남아 있고, 같은 시작일을 다시 넣으면 그대로 보입니다.`)) return;
+
+    setKey('cyc|' + cs, null);
+    if (viewCycle === cs) viewCycle = null;
+    toast('사이클 기록 삭제');
+    return;
+  }
+
+  // 정산 카드를 누르면 그 사이클을 체크 탭에서 본다
+  const oc = ev.target.closest('[data-open]');
+  if (oc && !ev.target.closest('button')){
+    viewCycle = oc.dataset.open;
+    selWeek = 0; selDay = 0;
+    const i = dayIndex(iso(new Date()));
+    if (i >= 0 && i < 21){ selWeek = Math.floor(i/7); selDay = i; }
+    view = 'check';
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
+
+  // 정산완료 / 마감 해제
+  const lb = ev.target.closest('[data-lock]');
+  if (lb){
+    const w = Number(lb.dataset.lock);
+    const cs = lb.dataset.cs || S.start;
+    if (isLockedAt(cs, w)){
+      if (!confirm(`${w+1}주차 마감을 해제할까요?\n다시 수정할 수 있게 됩니다.`)) return;
+      setKey(lockKeyAt(cs, w), null);
+      toast(`${w+1}주차 마감 해제`);
+    } else {
+      const t = tallyWeek(cs, w);
+      if (!confirm(`${w+1}주차를 정산완료로 마감할까요?\n\n이행 ${t.ok} · 미이행 ${t.no}\n\n마감하면 이 주차는 수정할 수 없습니다.`)) return;
+      setKey(lockKeyAt(cs, w), '1');
+      toast(`${w+1}주차 정산완료`);
+    }
     return;
   }
 });
 
 /* 여행 등으로 집을 비운 날 → 집계 제외 */
 document.getElementById('offbtn').addEventListener('click', () => {
+  if (blocked()) return;
   setKey('x|' + isoOf(selDay), isOffDay(selDay) ? null : '1');
 });
 
 /* 주차별 담당자 */
 document.getElementById('ownerin').addEventListener('change', ev => {
-  setKey('o|' + selWeek, ev.target.value.trim());
+  if (isLocked(selWeek)){ toast(`${selWeek+1}주차는 정산 마감됐어요`); render(); return; }
+  setKey(ownerKeyAt(baseStart(), selWeek), ev.target.value.trim());
 });
 
-/* 시작일 — 체크 기록은 실제 날짜에 묶여 있어 사라지지 않음 */
-function setStart(ds){
-  setKey('start', ds);
+/* 새 사이클 시작 — 체크 기록은 실제 날짜에 묶여 있어 사라지지 않음 */
+document.getElementById('startin').addEventListener('change', ev => {
+  pickStart = ev.target.value || null;
+  render();
+});
+
+document.getElementById('backcyc').addEventListener('click', () => {
+  viewCycle = null;
   const i = dayIndex(iso(new Date()));
   if (i >= 0 && i < 21){ selWeek = Math.floor(i/7); selDay = i; }
   else { selWeek = 0; selDay = 0; }
-  render();
-}
-document.getElementById('startin').addEventListener('change', ev => {
-  if (ev.target.value) setStart(ev.target.value);
+  render(); window.scrollTo(0, 0);
 });
-document.getElementById('today').addEventListener('click', () => setStart(iso(new Date())));
+
+document.getElementById('startbtn').addEventListener('click', () => {
+  const ds = document.getElementById('startin').value;
+  if (!ds) return;
+  // 기존 사이클과 3주 구간이 겹치면 거부한다 (같은 날이 두 사이클에 들어가면 집계가 이중으로 잡힌다)
+  const ov = overlapWith(ds, ds);
+  if (ov){
+    const a = parse(ov.a), b = parse(ov.b);
+    alert(`이미 진행한 사이클과 기간이 겹칩니다.\n\n겹치는 사이클: ${a.getMonth()+1}/${a.getDate()} ~ ${b.getMonth()+1}/${b.getDate()}\n\n그 사이클이 끝난 다음 날부터 고를 수 있어요.`);
+    return;
+  }
+  const e = dayFrom(ds, 20);
+  if (!confirm(`${parse(ds).getMonth()+1}/${parse(ds).getDate()} ~ ${e.getMonth()+1}/${e.getDate()}\n\n이 기간으로 새 3주 사이클을 시작할까요?`)) return;
+
+  setKey('cyc|' + ds, '1');     // 이때 비로소 사이클로 등록된다
+  setKey('start', ds);          // 참고용 (사이클 판정은 cyc| 키로만 한다)
+  pickStart = null;
+  viewCycle = ds;
+  const i = dayIndex(iso(new Date()));
+  if (i >= 0 && i < 21){ selWeek = Math.floor(i/7); selDay = i; }
+  else { selWeek = 0; selDay = 0; }
+  toast('새 사이클 시작');
+  render();
+});
 
 /* 설정 */
 document.getElementById('syncurl').addEventListener('change', ev => {
@@ -678,6 +1185,16 @@ document.getElementById('reset').addEventListener('click', () => {
   saveLocal(); selWeek = 0; selDay = 0; render();
   if (syncUrl) pull();
 });
+
+/* 탭 아이콘 */
+document.getElementById('ti-check').innerHTML =
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5"
+    width="17" height="16" rx="3"/><path d="M3.5 9.5h17M8.2 14l2.3 2.3 4.6-4.6"/></svg>`;
+document.getElementById('ti-settle').innerHTML =
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path
+    d="M4 19.5V11M9.3 19.5V5M14.7 19.5v-6M20 19.5V8.5"/></svg>`;
 
 /* ══ 시작 ══ */
 loadLocal();
