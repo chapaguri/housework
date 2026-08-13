@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F2F4F1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121614" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="집안일">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧹</text></svg>">
+<title>집안일 3주 사이클</title>
+<style>
+  :root{
+    --bg:#F2F4F1; --surface:#FFFFFF; --surface-2:#E9EDE8; --line:#D9DFD8;
+    --ink:#191E1B; --muted:#6B746D;
+    --accent:#12705F; --accent-soft:#DCEDE7; --on-accent:#FFFFFF;
+    --warn:#B0492E; --warn-soft:#F6E3DC;
+    --shadow:0 1px 2px rgba(25,30,27,.05), 0 6px 18px rgba(25,30,27,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#121614; --surface:#1B211E; --surface-2:#232A26; --line:#2E3733;
+      --ink:#E7EDE9; --muted:#95A09A;
+      --accent:#4FBFA5; --accent-soft:#12332C; --on-accent:#0C1614;
+      --warn:#E08163; --warn-soft:#3A241D;
+      --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#121614; --surface:#1B211E; --surface-2:#232A26; --line:#2E3733;
+    --ink:#E7EDE9; --muted:#95A09A;
+    --accent:#4FBFA5; --accent-soft:#12332C; --on-accent:#0C1614;
+    --warn:#E08163; --warn-soft:#3A241D;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
+  }
+
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard",
+                "Noto Sans KR","Malgun Gothic",system-ui,sans-serif;
+    font-size:16px; line-height:1.5;
+    padding:0 0 calc(40px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{
+    max-width:560px; margin:0 auto;
+    padding-left:max(14px, env(safe-area-inset-left));
+    padding-right:max(14px, env(safe-area-inset-right));
+  }
+  button{font:inherit;color:inherit;cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* ─ header ─ */
+  header{padding:calc(16px + env(safe-area-inset-top)) 0 10px}
+  .titlerow{display:flex;align-items:center;gap:9px}
+  h1{font-size:20px;font-weight:800;letter-spacing:-.6px;margin:0;text-wrap:balance}
+  .sync{margin-left:auto;flex:0 0 auto;font-size:11px;font-weight:800;
+        padding:4px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);
+        white-space:nowrap}
+  .sync[data-s="ok"]{background:var(--accent-soft);color:var(--accent)}
+  .sync[data-s="busy"]{background:var(--surface-2);color:var(--muted)}
+  .sync[data-s="err"]{background:var(--warn-soft);color:var(--warn)}
+
+  .cyc{display:flex;align-items:center;gap:8px;margin-top:9px;font-size:13px;color:var(--muted)}
+  .startpick{display:flex;align-items:center;gap:7px;background:var(--surface);
+    border:1px solid var(--line);border-radius:10px;padding:6px 10px;box-shadow:var(--shadow)}
+  .startpick .sl{font-size:11.5px;font-weight:800;color:var(--muted);white-space:nowrap}
+  .startpick input{font:inherit;font-size:14px;font-weight:700;color:var(--ink);
+    border:none;background:transparent;padding:0;min-width:0}
+  .startpick input::-webkit-calendar-picker-indicator{opacity:.5}
+  .startpick:focus-within{border-color:var(--accent)}
+  .cyc button{background:none;border:none;padding:6px 2px;color:var(--accent);
+              font-size:13px;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+  .cycinfo{margin-top:6px;font-size:12.5px;color:var(--muted);font-weight:600;padding-left:2px}
+
+  /* ─ week nav + day strip ─ */
+  .stripcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+             padding:10px 10px 12px;box-shadow:var(--shadow)}
+  .wknav{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .wknav .seg{display:flex;gap:3px;background:var(--surface-2);border-radius:10px;padding:3px}
+  .wknav .seg button{border:none;background:none;font-size:13px;font-weight:700;
+    padding:5px 10px;border-radius:8px;color:var(--muted);position:relative}
+  .wknav .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+  .dotmark{position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;
+           background:var(--accent)}
+  .wknav .tally{margin-left:auto;display:flex;gap:5px;font-size:12px;font-weight:700}
+  .pill{padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .pill.ok{background:var(--accent-soft);color:var(--accent)}
+  .pill.no{background:var(--warn-soft);color:var(--warn)}
+  .pill.offp{background:var(--surface-2);color:var(--muted)}
+
+  .days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .day{border:1.5px solid transparent;background:var(--surface-2);border-radius:11px;
+       padding:6px 0 9px;text-align:center;line-height:1.2;position:relative;min-width:0}
+  .day .dw{display:block;font-size:10px;font-weight:700;color:var(--muted)}
+  .day .dd{display:block;font-size:16px;font-weight:800;letter-spacing:-.5px}
+  .day[data-sel="1"]{background:var(--accent);border-color:var(--accent)}
+  .day[data-sel="1"] .dw,.day[data-sel="1"] .dd{color:var(--on-accent)}
+  .day[data-today="1"]{border-color:var(--accent)}
+  .day .dot{position:absolute;left:50%;transform:translateX(-50%);bottom:4px;
+            width:14px;height:3px;border-radius:2px;background:var(--line)}
+  .day[data-sel="1"] .dot{background:rgba(255,255,255,.35)}
+  .day .dot.full{background:var(--accent)}
+  .day .dot.part{background:linear-gradient(90deg,var(--accent) 50%,var(--line) 50%)}
+  .day[data-sel="1"] .dot.full{background:var(--on-accent)}
+  .day[data-off="1"] .dd{text-decoration:line-through;text-decoration-thickness:2px;opacity:.55}
+  .day[data-off="1"] .dw{opacity:.55}
+  .day[data-off="1"] .dot{background:var(--warn)}
+
+  .owner{display:flex;align-items:center;gap:9px;margin-top:9px;padding-top:9px;
+         border-top:1px solid var(--line)}
+  .owner .ol{font-size:11.5px;font-weight:800;color:var(--muted);flex:0 0 auto;white-space:nowrap}
+  .owner input{flex:1;min-width:0;font:inherit;font-size:14px;font-weight:700;
+    background:var(--surface-2);border:1px solid transparent;border-radius:9px;
+    padding:7px 10px;color:var(--ink)}
+  .owner input::placeholder{font-weight:500;color:var(--muted)}
+  .owner input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+
+  /* ─ day head ─ */
+  .dayhead{display:flex;align-items:center;gap:8px;margin:18px 0 8px;padding:0 2px}
+  .dayhead h2{font-size:17px;font-weight:800;margin:0;letter-spacing:-.4px}
+  .dayhead .todaytag{font-size:11px;font-weight:800;color:var(--accent);
+    background:var(--accent-soft);padding:3px 8px;border-radius:999px}
+  .dayhead .prog{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--muted)}
+  .offbtn{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;
+    font-size:12px;font-weight:800;padding:5px 11px;color:var(--muted);flex:0 0 auto}
+  .offbtn[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
+
+  /* ─ task list ─ */
+  .group{margin-bottom:12px}
+  .glabel{font-size:11px;font-weight:800;letter-spacing:1.2px;color:var(--muted);margin:0 0 5px 4px}
+  ul{list-style:none;margin:0;padding:0;background:var(--surface);border:1px solid var(--line);
+     border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+  li{display:flex;align-items:center;gap:10px;padding:10px 11px;border-top:1px solid var(--line)}
+  li:first-child{border-top:none}
+  li .txt{flex:1;min-width:0}
+  li .nm{font-size:15px;font-weight:600;letter-spacing:-.3px;line-height:1.35}
+  li .sb{font-size:12px;color:var(--muted);margin-top:1px}
+  li .badge{display:inline-block;font-size:11px;font-weight:700;color:var(--accent);
+            background:var(--accent-soft);padding:1px 7px;border-radius:999px;margin-left:6px}
+  li .badge.done{background:var(--accent);color:var(--on-accent)}
+  li .badge.wk{background:var(--surface-2);color:var(--muted);font-weight:800;letter-spacing:.3px}
+  li[data-st="1"] .nm{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1.5px}
+  li[data-st="2"] .nm{color:var(--warn)}
+
+  .mark{flex:0 0 auto;width:36px;height:36px;border-radius:50%;border:2px solid var(--line);
+        background:transparent;font-size:16px;font-weight:800;display:grid;place-items:center;
+        color:var(--muted);transition:background .12s,border-color .12s,color .12s}
+  li[data-st="1"] .mark{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  li[data-st="2"] .mark{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+  @media (prefers-reduced-motion:reduce){ .mark{transition:none} }
+
+  .empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;
+         padding:22px 16px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
+  .offnote{background:var(--warn-soft);border:1px solid var(--warn);border-radius:14px;
+    padding:18px 16px;text-align:center;color:var(--warn);font-size:14px;
+    font-weight:700;line-height:1.6}
+  .offnote span{display:block;font-weight:600;font-size:12.5px;opacity:.85;margin-top:4px}
+
+  /* ─ sections ─ */
+  section{margin-top:20px}
+  .shead{display:flex;align-items:baseline;gap:8px;margin:0 0 6px 4px}
+  .shead h2{font-size:15px;font-weight:800;margin:0;letter-spacing:-.3px}
+  .shead .note{font-size:12px;color:var(--muted)}
+
+  details{background:var(--surface);border:1px solid var(--line);border-radius:14px;
+          box-shadow:var(--shadow);overflow:hidden}
+  summary{padding:12px 14px;font-size:14.5px;font-weight:700;cursor:pointer;list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"＋";float:right;color:var(--muted);font-weight:700}
+  details[open] summary::after{content:"－"}
+  .rules{padding:0 16px 14px;margin:0;font-size:13.5px;line-height:1.7;color:var(--ink)}
+  .rules li{display:list-item;padding:0 0 0 2px;border:none;margin-bottom:7px}
+  .rules b{color:var(--accent)}
+  .rules .sm{color:var(--muted);font-size:12.5px}
+
+  .setbody{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:11.5px;font-weight:800;color:var(--muted)}
+  .field input{font:inherit;font-size:14px;background:var(--surface-2);border:1px solid transparent;
+    border-radius:9px;padding:9px 11px;color:var(--ink);width:100%}
+  .field input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+  .field .hint{font-size:11.5px;color:var(--muted);line-height:1.55}
+  .setbtn{border:1px solid var(--line);background:var(--surface-2);border-radius:9px;
+          padding:9px 12px;font-size:13px;font-weight:700;color:var(--ink)}
+  .setbtn.danger{color:var(--warn)}
+
+  .foot{margin-top:20px;font-size:12px;color:var(--muted);line-height:1.65;padding:0 4px}
+
+  @media (max-width:360px){
+    .wrap{padding-left:10px;padding-right:10px}
+    .wknav .seg button{padding:5px 8px;font-size:12px}
+    .pill{padding:3px 7px;font-size:11px}
+    .day .dd{font-size:15px}
+    li .nm{font-size:14.5px}
+    .mark{width:34px;height:34px}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<header>
+  <div class="titlerow">
+    <h1>집안일 3주 사이클</h1>
+    <span class="sync" id="sync">로컬 저장</span>
+  </div>
+  <div class="cyc">
+    <label class="startpick">
+      <span class="sl">시작일</span>
+      <input type="date" id="startin" aria-label="사이클 시작일">
+    </label>
+    <button id="today" type="button">오늘로</button>
+  </div>
+  <div class="cycinfo num" id="cycinfo"></div>
+</header>
+
+<div class="stripcard">
+  <div class="wknav">
+    <div class="seg" id="seg" role="group" aria-label="주차 선택"></div>
+    <div class="tally">
+      <span class="pill ok num" id="t-ok">이행 0</span>
+      <span class="pill no num" id="t-no">미이행 0</span>
+      <span class="pill offp num" id="t-off" hidden></span>
+    </div>
+  </div>
+  <div class="days" id="days"></div>
+  <div class="owner">
+    <label class="ol" for="ownerin" id="ownerlabel">담당자</label>
+    <input id="ownerin" type="text" autocomplete="off" enterkeyhint="done"
+           placeholder="이름 입력" maxlength="12">
+  </div>
+</div>
+
+<div class="dayhead">
+  <h2 id="dtitle" class="num"></h2>
+  <span class="todaytag" id="dtoday" hidden>오늘</span>
+  <span class="prog num" id="dprog"></span>
+  <button type="button" class="offbtn" id="offbtn" aria-pressed="false">제외</button>
+</div>
+
+<div id="list"></div>
+
+<section>
+  <div class="shead"><h2>이번 주 목표</h2><span class="note">횟수로 채우는 항목</span></div>
+  <ul id="weekly"></ul>
+</section>
+
+<section id="msec">
+  <div class="shead"><h2>매달 항목</h2><span class="note" id="mlabel"></span></div>
+  <ul id="monthly"></ul>
+</section>
+
+<section>
+  <details>
+    <summary>◈ 추가사항 · 용돈 규칙</summary>
+    <ul class="rules">
+      <li>공청기 필터 청소, 창틀 청소 등 추가 청소 진행 시 <b>5천원 ~ 1만원</b> 추가 획득
+          <span class="sm">(항목별 월 1회)</span></li>
+      <li>주 내에 여행이 있을 경우, 출발날 &amp; 도착날 합산하여 청소 진행 시 <b>2만원</b> 획득</li>
+      <li>2주에 걸쳐 여행 시, 합의하여 청소 진행하고 <b>각 1만원씩</b> 획득</li>
+      <li>그 외 특이사항 발생 시 두 사람 합의하여 조절 가능
+          <span class="sm">단, 집안일 미루고 용돈 획득하기는 불가함</span></li>
+    </ul>
+  </details>
+</section>
+
+<section>
+  <details id="setsec">
+    <summary>⚙ 설정</summary>
+    <div class="setbody">
+      <div class="field">
+        <label for="syncurl">동기화 주소 (구글 시트 웹앱 URL)</label>
+        <input id="syncurl" type="url" autocomplete="off" inputmode="url"
+               placeholder="https://script.google.com/macros/s/.../exec">
+        <div class="hint">비워두면 이 기기에만 저장됩니다. 주소를 넣으면 두 사람의 체크가
+          구글 시트를 통해 합쳐집니다. <b>두 폰 모두 같은 주소</b>를 넣어야 합니다.</div>
+      </div>
+      <button type="button" class="setbtn" id="syncnow">지금 동기화</button>
+      <button type="button" class="setbtn danger" id="reset">이 기기 기록 지우기</button>
+    </div>
+  </details>
+</section>
+
+<div class="foot">
+  동그라미를 누를 때마다 <b>완료 → 미이행 → 취소</b> 순서로 바뀝니다.
+  여행 등으로 집을 비운 날은 날짜 옆 <b>제외</b> 버튼을 누르면 집계에서 빠집니다.
+</div>
+
+</div>
+
+<script>
+"use strict";
+
+/* ══ 항목 정의 ══
+   when: 'daily'   매일 (시트의 '평일' 열 — 토·일 행에도 X가 없으므로 주말 포함)
+         'weekend' 토·일에만
+         'days'    지정 요일에만
+         'count'   주간 횟수 목표 (요일 무관) */
+const TASKS = [
+  {id:'b1', cat:'화장실', name:'변기 커버 이물질 확인', when:'daily'},
+  {id:'b2', cat:'화장실', name:'소모품 채우기', when:'daily'},
+  {id:'b3', cat:'화장실', name:'변기 청소 · 하수구 청소', when:'weekend'},
+  {id:'k1', cat:'주방', name:'당일 설거지', when:'daily'},
+  {id:'k2', cat:'주방', name:'전일 설거지 · 식기 정리', when:'daily'},
+  {id:'k3', cat:'주방', name:'싱크대 및 하수구 청소', when:'weekend'},
+  {id:'k4', cat:'주방', name:'가스레인지 청소', when:'weekend'},
+  {id:'l1', cat:'거실', name:'쓰레기통 · 분리수거통 비우기', when:'daily'},
+  {id:'l2', cat:'거실', name:'택배 정리 · 박스 버리기', when:'daily'},
+  {id:'l3', cat:'거실', name:'테이블 및 쓰레기 정리', when:'daily'},
+  {id:'l4', cat:'거실', name:'누누 물주기', when:'weekend'},
+  {id:'w1', cat:'세탁', name:'건조된 세탁물 정리', sub:'D+1일까지', when:'daily'},
+  {id:'w2', cat:'세탁', name:'종량제봉투 내다놓기', sub:'화 · 목 · 일', when:'days', days:[2,4,0]},
+  {id:'w3', cat:'세탁', name:'수건 빨래', when:'count', target:1},
+  {id:'w4', cat:'세탁', name:'옷 빨래', when:'count', target:1},
+  {id:'w5', cat:'세탁', name:'팬티 빨래', when:'count', target:1},
+  {id:'c1', cat:'청소', name:'로봇 청소기', when:'count', target:3},
+  {id:'c2', cat:'청소', name:'진공 청소기 · 스팀 청소기', when:'weekend'},
+];
+
+const MONTHLY = [
+  {id:'m1', cat:'화장실', name:'화장실 전체 청소'},
+  {id:'m2', cat:'주방', name:'냉장고 · 음쓰 정리'},
+  {id:'m3', cat:'세탁', name:'이불 빨래'},
+  {id:'m4', cat:'청소', name:'집안 전체 먼지 제거'},
+];
+
+const CATS = ['화장실','주방','거실','세탁','청소'];
+const DOW = ['일','월','화','수','목','금','토'];
+const MARK = ['', '○', '✕'];
+const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
+/* 기본 동기화 주소 — 설정에서 비우면 이 기기에만 저장된다 */
+const DEFAULT_SYNC = 'https://script.google.com/macros/s/AKfycbzLToZF2ukX94M6qpdymUmPL0fQE-T7_CJjsVL8MFklaoff5COX4DmHS-USp-ixGPqhgg/exec';
+
+/* ══ 저장소 ══
+   공유 데이터는 평평한 key-value 한 벌. 항목 단위로 병합되므로
+   두 사람이 동시에 눌러도 서로의 기록을 덮어쓰지 않는다.
+     d|2026-08-13|k1 = 1   (1 완료 / 2 미이행)
+     x|2026-08-16    = 1   (제외일)
+     m|2026-08|m3    = 1   (매달 항목)
+     start           = 2026-08-13  (사이클 시작일)                      */
+const LK = 'chores.v2', LP = 'chores.pending', LU = 'chores.syncurl';
+
+let S = {};            // 공유 상태
+let pending = [];      // 아직 서버에 못 보낸 변경
+let syncUrl = '';
+let selWeek = 0, selDay = 0;
+let busy = false;
+
+function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+function loadLocal(){
+  S = lsGet(LK, null) || migrateV1() || {};
+  pending = lsGet(LP, []) || [];
+  // 저장된 값이 없으면 기본 주소 사용. 설정에서 지우면 빈 값이 저장되어 로컬 전용이 된다.
+  try{
+    const saved = localStorage.getItem(LU);
+    syncUrl = (saved === null) ? DEFAULT_SYNC : saved;
+  }catch(e){ syncUrl = DEFAULT_SYNC; }
+  if (!S.start) S.start = iso(new Date());
+}
+function saveLocal(){ lsSet(LK, S); lsSet(LP, pending); }
+
+/* 예전 버전(chores.v1) 데이터가 있으면 평평한 구조로 옮긴다 */
+function migrateV1(){
+  const old = lsGet('chores.v1', null);
+  if (!old || !old.start) return null;
+  const out = { start: old.start };
+  Object.keys(old.marks || {}).forEach(k => { out['d|' + k] = String(old.marks[k]); });
+  Object.keys(old.off || {}).forEach(k => { out['x|' + k] = '1'; });
+  Object.keys(old.months || {}).forEach(m =>
+    Object.keys(old.months[m]).forEach(id => { out['m|' + m + '|' + id] = String(old.months[m][id]); }));
+  return out;
+}
+
+/* 값 변경의 유일한 통로 — 로컬 반영 + 전송 대기열 적재 */
+function setKey(k, v){
+  if (v === null || v === undefined || v === '') delete S[k]; else S[k] = String(v);
+  pending.push({ k: k, v: (v === null || v === undefined || v === '') ? null : String(v) });
+  saveLocal();
+  render();
+  push();
+}
+
+/* ══ 동기화 ══ */
+function setSyncBadge(state, text){
+  const el = document.getElementById('sync');
+  el.dataset.s = state; el.textContent = text;
+}
+function refreshBadge(){
+  if (!syncUrl) return setSyncBadge('', '로컬 저장');
+  if (busy) return setSyncBadge('busy', '동기화 중…');
+  if (pending.length) return setSyncBadge('err', '대기 ' + pending.length);
+  setSyncBadge('ok', '동기화됨');
+}
+
+async function pull(){
+  if (!syncUrl || busy) return;
+  busy = true; refreshBadge();
+  try{
+    const r = await fetch(syncUrl + '?token=' + encodeURIComponent(TOKEN), { redirect:'follow' });
+    const j = await r.json();
+    if (!j || !j.ok) throw new Error(j && j.error || 'bad response');
+    S = j.data || {};
+    pending.forEach(op => { if (op.v === null) delete S[op.k]; else S[op.k] = op.v; });
+    if (!S.start) S.start = iso(new Date());
+    saveLocal();
+    busy = false; render();
+  }catch(e){
+    busy = false; refreshBadge();
+  }
+}
+
+/* 쓰기도 GET 으로 보낸다.
+   Apps Script 의 POST 응답은 리다이렉트 뒤 본문을 못 읽는 경우가 있어
+   (쓰기는 되지만 결과를 못 받아 같은 요청을 무한 재전송하게 된다) GET 으로 통일. */
+const MAX_OPS = 20;   // URL 길이 안전선
+
+async function push(){
+  if (!syncUrl || busy || !pending.length) return;
+  const ops = pending.slice(0, MAX_OPS);
+  busy = true; refreshBadge();
+  try{
+    const q = syncUrl + '?token=' + encodeURIComponent(TOKEN)
+            + '&ops=' + encodeURIComponent(JSON.stringify(ops));
+    const r = await fetch(q, { redirect:'follow' });
+    const j = await r.json();
+    if (!j || !j.ok) throw new Error(j && j.error || 'bad response');
+    pending = pending.slice(ops.length);
+    S = j.data || {};
+    pending.forEach(op => { if (op.v === null) delete S[op.k]; else S[op.k] = op.v; });
+    if (!S.start) S.start = iso(new Date());
+    saveLocal();
+    busy = false; render();
+    if (pending.length) push();          // 남은 대기분 이어서 전송
+  }catch(e){
+    busy = false; refreshBadge();
+  }
+}
+
+/* ══ 날짜 유틸 ══ */
+function iso(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0')
+       + '-' + String(d.getDate()).padStart(2,'0');
+}
+function parse(s){ const [y,m,d] = String(s).split('-').map(Number); return new Date(y, m-1, d); }
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+
+const startDate = () => parse(S.start);
+const dayIndex = ds => Math.round((parse(ds) - startDate()) / 86400000);
+function dateOf(i){ return addDays(startDate(), i); }
+function isoOf(i){ return iso(dateOf(i)); }
+
+/* ══ 조회 ══ */
+function markOf(i, id){ return Number(S['d|' + isoOf(i) + '|' + id] || 0); }
+function isOffDay(i){ return !!S['x|' + isoOf(i)]; }
+function monthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
+function monthMark(mk, id){ return Number(S['m|' + mk + '|' + id] || 0); }
+
+function applies(t, dow){
+  if (t.when === 'daily') return true;
+  if (t.when === 'weekend') return dow === 0 || dow === 6;
+  if (t.when === 'days') return t.days.includes(dow);
+  return false;
+}
+function scheduled(i){
+  const dow = dateOf(i).getDay();
+  return TASKS.filter(t => applies(t, dow));
+}
+function weekCount(w, id){
+  let n = 0;
+  for (let i = w*7; i < w*7+7; i++) if (markOf(i, id) === 1) n++;
+  return n;
+}
+function offCount(w){
+  let n = 0;
+  for (let i = w*7; i < w*7+7; i++) if (isOffDay(i)) n++;
+  return n;
+}
+/* 주간 횟수 목표를 제외일만큼 비례 축소 */
+function targetOf(w, t){
+  const o = offCount(w);
+  return o === 0 ? t.target : Math.max(0, Math.round(t.target * (7 - o) / 7));
+}
+
+/* ══ 렌더 ══ */
+function render(){
+  refreshBadge();
+
+  const s = startDate(), e = addDays(s, 20);
+  const si = document.getElementById('startin');
+  if (si.value !== S.start) si.value = S.start;
+  document.getElementById('cycinfo').textContent =
+    `${s.getMonth()+1}월 ${s.getDate()}일 (${DOW[s.getDay()]}) ~ ${e.getMonth()+1}월 ${e.getDate()}일 (${DOW[e.getDay()]}) · 3주`;
+
+  // 3주차 = 매달 항목이 붙는 주. 미완료가 남아 있으면 버튼에 점 표시
+  const mk3 = monthKey(dateOf(14));
+  const mDone = MONTHLY.filter(t => monthMark(mk3, t.id) === 1).length;
+  document.getElementById('seg').innerHTML = [0,1,2].map(w =>
+    `<button type="button" data-w="${w}" aria-pressed="${w===selWeek}">${w+1}주차${
+      w===2 && mDone < MONTHLY.length ? '<i class="dotmark"></i>' : ''}</button>`).join('');
+
+  const todayISO = iso(new Date());
+  document.getElementById('days').innerHTML = Array.from({length:7}, (_,k) => {
+    const i = selWeek*7 + k, d = dateOf(i);
+    const sch = scheduled(i);
+    const done = sch.filter(t => markOf(i, t.id) === 1).length;
+    const cls = sch.length === 0 ? '' : done === sch.length ? 'full' : done > 0 ? 'part' : '';
+    return `<button type="button" class="day" data-i="${i}" data-sel="${i===selDay?1:0}"
+              data-today="${iso(d)===todayISO?1:0}" data-off="${isOffDay(i)?1:0}"
+              aria-pressed="${i===selDay}" aria-label="${d.getMonth()+1}월 ${d.getDate()}일">
+              <span class="dw">${DOW[d.getDay()]}</span>
+              <span class="dd num">${d.getDate()}</span>
+              <span class="dot ${cls}"></span></button>`;
+  }).join('');
+
+  // 주차별 담당자
+  document.getElementById('ownerlabel').textContent = `${selWeek+1}주차 담당자`;
+  syncField('ownerin', S['o|' + selWeek] || '');
+
+  const d = dateOf(selDay);
+  document.getElementById('dtitle').textContent =
+    `${d.getMonth()+1}월 ${d.getDate()}일 (${DOW[d.getDay()]})`;
+  document.getElementById('dtoday').hidden = iso(d) !== todayISO;
+
+  const off = isOffDay(selDay);
+  const offb = document.getElementById('offbtn');
+  offb.setAttribute('aria-pressed', off);
+  offb.textContent = off ? '제외됨' : '제외';
+
+  const sch = scheduled(selDay);
+  const done = sch.filter(t => markOf(selDay, t.id) === 1).length;
+  document.getElementById('dprog').textContent =
+    off ? '' : (sch.length ? `${done} / ${sch.length}` : '');
+
+  document.getElementById('list').innerHTML = off
+    ? `<div class="offnote">이 날은 집계에서 제외됩니다
+         <span>여행 · 외박 등으로 집을 비운 날. 미이행으로 계산되지 않아요.</span></div>`
+    : sch.length === 0
+    ? `<div class="empty">이 날 정해진 항목은 없어요.<br>아래 ‘이번 주 목표’만 확인하면 됩니다.</div>`
+    : CATS.filter(c => sch.some(t => t.cat === c)).map(c => `
+        <div class="group">
+          <div class="glabel">${c}</div>
+          <ul>${sch.filter(t => t.cat === c).map(t => row(t, markOf(selDay, t.id),
+                t.when === 'weekend' ? '<span class="badge wk">주말</span>' : '')).join('')}</ul>
+        </div>`).join('');
+
+  // 주간 횟수 목표
+  document.getElementById('weekly').innerHTML =
+    TASKS.filter(t => t.when === 'count').map(t => {
+      const tg = targetOf(selWeek, t);
+      const n = weekCount(selWeek, t.id), hit = n >= tg;
+      return row(t, markOf(selDay, t.id),
+        `<span class="badge${hit?' done':''} num">${n} / ${tg}</span>`,
+        tg !== t.target ? `제외일 반영 (원래 주 ${t.target}회)` : t.cat);
+    }).join('');
+
+  // 매달 항목은 3주차에만 (시트 구조: 1·2주차 표는 동일, 3주차 표에만 '매달' 열이 있음)
+  const mk = monthKey(d);
+  document.getElementById('msec').hidden = selWeek !== 2;
+  document.getElementById('mlabel').textContent = `${d.getMonth()+1}월 · 주말에`;
+  document.getElementById('monthly').innerHTML = MONTHLY.map(t => {
+    const st = monthMark(mk, t.id);
+    return `<li data-st="${st}">
+      <div class="txt"><div class="nm">${t.name}</div><div class="sb">${t.cat}</div></div>
+      <button type="button" class="mark" data-mm="${t.id}" aria-label="${t.name} 상태 변경">${MARK[st]}</button></li>`;
+  }).join('');
+
+  // 주차 집계
+  let ok = 0, no = 0, offDays = 0;
+  const now = new Date(); now.setHours(0,0,0,0);
+  for (let i = selWeek*7; i < selWeek*7+7; i++){
+    if (isOffDay(i)){ offDays++; continue; }
+    const past = dateOf(i) < now;
+    for (const t of scheduled(i)){
+      const m = markOf(i, t.id);
+      if (m === 1) ok++;
+      else if (m === 2) no++;
+      else if (past) no++;
+    }
+  }
+  for (const t of TASKS.filter(x => x.when === 'count')){
+    const n = weekCount(selWeek, t.id);
+    ok += n;
+    if (dateOf(selWeek*7+6) < now) no += Math.max(0, targetOf(selWeek, t) - n);
+  }
+  document.getElementById('t-ok').textContent = `이행 ${ok}`;
+  document.getElementById('t-no').textContent = `미이행 ${no}`;
+  const toff = document.getElementById('t-off');
+  toff.hidden = offDays === 0;
+  toff.textContent = `제외 ${offDays}일`;
+
+  // 설정 입력값 반영 (포커스 중이면 건드리지 않음)
+  syncField('syncurl', syncUrl);
+}
+
+function syncField(id, val){
+  const el = document.getElementById(id);
+  if (el && document.activeElement !== el && el.value !== val) el.value = val;
+}
+
+function row(t, st, extra, subOverride){
+  return `<li data-st="${st}">
+    <div class="txt">
+      <div class="nm">${t.name}${extra || ''}</div>
+      ${t.sub || subOverride ? `<div class="sb">${t.sub || subOverride}</div>` : ''}
+    </div>
+    <button type="button" class="mark" data-mk="${t.id}" aria-label="${t.name} 상태 변경">${MARK[st]}</button>
+  </li>`;
+}
+
+/* ══ 이벤트 ══ */
+document.addEventListener('click', ev => {
+  const seg = ev.target.closest('#seg button');
+  if (seg){ selWeek = +seg.dataset.w; selDay = selWeek*7; render(); return; }
+
+  const day = ev.target.closest('.day');
+  if (day){ selDay = +day.dataset.i; render(); return; }
+
+  const mk = ev.target.closest('[data-mk]');
+  if (mk){
+    const id = mk.dataset.mk;
+    const next = (markOf(selDay, id) + 1) % 3;
+    setKey('d|' + isoOf(selDay) + '|' + id, next || null);
+    return;
+  }
+
+  const mm = ev.target.closest('[data-mm]');
+  if (mm){
+    const key = monthKey(dateOf(selDay));
+    const next = (monthMark(key, mm.dataset.mm) + 1) % 3;
+    setKey('m|' + key + '|' + mm.dataset.mm, next || null);
+    return;
+  }
+});
+
+/* 여행 등으로 집을 비운 날 → 집계 제외 */
+document.getElementById('offbtn').addEventListener('click', () => {
+  setKey('x|' + isoOf(selDay), isOffDay(selDay) ? null : '1');
+});
+
+/* 주차별 담당자 */
+document.getElementById('ownerin').addEventListener('change', ev => {
+  setKey('o|' + selWeek, ev.target.value.trim());
+});
+
+/* 시작일 — 체크 기록은 실제 날짜에 묶여 있어 사라지지 않음 */
+function setStart(ds){
+  setKey('start', ds);
+  const i = dayIndex(iso(new Date()));
+  if (i >= 0 && i < 21){ selWeek = Math.floor(i/7); selDay = i; }
+  else { selWeek = 0; selDay = 0; }
+  render();
+}
+document.getElementById('startin').addEventListener('change', ev => {
+  if (ev.target.value) setStart(ev.target.value);
+});
+document.getElementById('today').addEventListener('click', () => setStart(iso(new Date())));
+
+/* 설정 */
+document.getElementById('syncurl').addEventListener('change', ev => {
+  syncUrl = ev.target.value.trim();
+  try{ localStorage.setItem(LU, syncUrl); }catch(e){}
+  if (syncUrl) { push().then(pull); } else refreshBadge();
+});
+document.getElementById('syncnow').addEventListener('click', () => { push().then(pull); });
+document.getElementById('reset').addEventListener('click', () => {
+  if (!confirm('이 기기에 저장된 기록을 지울까요?\n동기화 주소가 설정돼 있으면 시트에서 다시 받아옵니다.')) return;
+  S = { start: iso(new Date()) };
+  pending = [];
+  saveLocal(); selWeek = 0; selDay = 0; render();
+  if (syncUrl) pull();
+});
+
+/* ══ 시작 ══ */
+loadLocal();
+(function initSelection(){
+  const i = dayIndex(iso(new Date()));
+  if (i >= 0 && i < 21){ selWeek = Math.floor(i/7); selDay = i; }
+})();
+render();
+
+if (syncUrl){ push().then(pull); }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(); });
+window.addEventListener('online', () => { push().then(pull); });
+setInterval(() => { if (document.visibilityState === 'visible') pull(); }, 20000);
+</script>
+</body>
+</html>
