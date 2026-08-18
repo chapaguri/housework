@@ -229,6 +229,11 @@
               padding:2px 7px;border-radius:999px}
   .srow .ssub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:600}
   .srow .ssub b{font-weight:800}
+  .goals{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+  .goal{font-size:10.5px;font-weight:700;color:var(--muted);background:var(--surface-2);
+    border:1px solid var(--line);padding:2px 7px;border-radius:999px;white-space:nowrap}
+  .goal b{font-weight:800}
+  .goal.hit{color:var(--accent);background:var(--accent-soft);border-color:transparent}
   .srow .ssub .g{color:var(--accent)}
   .srow .ssub .r{color:var(--warn)}
   .srow[data-locked="1"]{background:var(--surface-2)}
@@ -267,6 +272,18 @@
   .cycfoot{padding:9px 12px;border-top:1px solid var(--line);background:var(--surface-2);
     font-size:11.5px;font-weight:600;color:var(--muted)}
   .cycfoot .g{color:var(--accent)} .cycfoot .r{color:var(--warn)}
+  .cfline{margin-bottom:7px}
+  .cfmoney{display:flex;align-items:baseline;gap:8px;padding:3px 0}
+  .cfmoney span{flex:1;min-width:0}
+  .cfmoney span i{font-style:normal;opacity:.75}
+  .cfmoney b{font-size:13px;font-weight:800;color:var(--ink)}
+  .cfmoney.total{border-top:1px dashed var(--line);margin-top:5px;padding-top:7px}
+  .cfmoney.total span{font-weight:800;color:var(--ink)}
+  .cfmoney.total b{font-size:16px;color:var(--accent);letter-spacing:-.5px}
+  .wmoney{font-size:11px;font-weight:800;background:var(--accent);color:var(--on-accent);
+    padding:2px 7px;border-radius:999px}
+  .fullday{font-size:11px;font-weight:800;color:var(--accent);
+    background:var(--accent-soft);padding:3px 8px;border-radius:999px}
 
   /* ─ 하단 탭바 ─ */
   .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:9;
@@ -304,6 +321,7 @@
   .setbtn{border:1px solid var(--line);background:var(--surface-2);border-radius:9px;
           padding:9px 12px;font-size:13px;font-weight:700;color:var(--ink)}
   .setbtn.danger{color:var(--warn)}
+  .setbtn.link{display:block;text-align:center;text-decoration:none;color:var(--accent)}
 
   .foot{margin-top:20px;font-size:12px;color:var(--muted);line-height:1.65;padding:0 4px}
 
@@ -401,7 +419,9 @@
 <section style="margin-top:2px">
   <div class="shead"><h2>진행 · 대기</h2><span class="note" id="settlerange"></span></div>
   <ul id="settle" class="settle"></ul>
-  <div class="settlenote">정산완료를 누르면 그 주차는 <b>마감</b>되어 더 이상 수정할 수 없습니다.
+  <div class="settlenote">
+    기본 용돈 <b>매달 500,000원</b> · 하루 전부 이행 <b>+10,000원</b> · 추가 청소 1건 <b>+10,000원</b><br>
+    정산완료를 누르면 그 주차는 <b>마감</b>되어 더 이상 수정할 수 없습니다.
     3주 전체를 마감하거나 기간이 지나면 <b>종료</b>로 옮겨집니다.</div>
 </section>
 
@@ -437,6 +457,12 @@
         <div class="hint">비워두면 이 기기에만 저장됩니다. 주소를 넣으면 두 사람의 체크가
           구글 시트를 통해 합쳐집니다. <b>두 폰 모두 같은 주소</b>를 넣어야 합니다.</div>
       </div>
+      <div class="field">
+        <label>항목 설정</label>
+        <div class="hint" id="cfginfo"></div>
+      </div>
+      <a class="setbtn link" id="sheetlink" href="#" target="_blank" rel="noopener">
+        구글 시트 열기 (항목 · 데이터 확인)</a>
       <button type="button" class="setbtn" id="syncnow">지금 동기화</button>
       <button type="button" class="setbtn danger" id="reset">이 기기 기록 지우기</button>
     </div>
@@ -464,7 +490,7 @@
          'weekend' 토·일에만
          'days'    지정 요일에만
          'count'   주간 횟수 목표 (요일 무관) */
-const TASKS = [
+const DEFAULT_TASKS = [
   {id:'b1', cat:'화장실', name:'변기 커버 이물질 확인', when:'daily'},
   {id:'b2', cat:'화장실', name:'소모품 채우기', when:'daily'},
   {id:'b3', cat:'화장실', name:'변기 청소 · 하수구 청소', when:'weekend'},
@@ -480,19 +506,31 @@ const TASKS = [
   {id:'w1', cat:'세탁', name:'건조된 세탁물 정리', sub:'D+1일까지', when:'daily'},
   {id:'w2', cat:'세탁', name:'종량제봉투 내다놓기', sub:'화 · 목 · 일', when:'days', days:[2,4,0]},
   {id:'w6', cat:'세탁', name:'베개 커버 교체', when:'weekend'},
-  {id:'w3', cat:'세탁', name:'수건 빨래', when:'count', target:1},
-  {id:'w4', cat:'세탁', name:'옷 빨래', when:'count', target:1},
-  {id:'w5', cat:'세탁', name:'팬티 빨래', when:'count', target:1},
-  {id:'c1', cat:'청소', name:'로봇 청소기', when:'count', target:3},
+  {id:'w3', cat:'세탁', name:'수건 빨래', short:'수건', when:'count', target:1},
+  {id:'w4', cat:'세탁', name:'옷 빨래', short:'옷', when:'count', target:1},
+  {id:'w5', cat:'세탁', name:'팬티 빨래', short:'팬티', when:'count', target:1},
+  {id:'c1', cat:'청소', name:'로봇 청소기', short:'로봇', when:'count', target:3},
   {id:'c2', cat:'청소', name:'진공 청소기 · 스팀 청소기', when:'weekend'},
 ];
 
-const MONTHLY = [
+/* bonus: true 면 진행 시 추가 청소 보너스(+10,000원) 대상 */
+const DEFAULT_MONTHLY = [
   {id:'m1', cat:'화장실', name:'화장실 전체 청소'},
   {id:'m2', cat:'주방', name:'냉장고 · 음쓰 정리'},
-  {id:'m3', cat:'세탁', name:'이불 빨래'},
+  {id:'m3', cat:'세탁', name:'이불 세탁', bonus:true},
   {id:'m4', cat:'청소', name:'집안 전체 먼지 제거'},
+  {id:'m5', cat:'청소', name:'창틀 청소', bonus:true},
+  {id:'m6', cat:'청소', name:'공청기 필터 청소', bonus:true},
 ];
+
+/* ── 용돈 ── */
+const MONTHLY_BASE = 500000;   // 매달 기본 용돈
+const DAY_BONUS    = 10000;    // 하루 전부 이행
+const CLEAN_BONUS  = 10000;    // 추가 청소 1건
+
+let TASKS = DEFAULT_TASKS;
+let MONTHLY = DEFAULT_MONTHLY;
+let cfgSource = 'default';   // 'sheet' | 'default'
 
 const CATS = ['화장실','주방','거실','세탁','청소'];
 const DOW = ['일','월','화','수','목','금','토'];
@@ -507,7 +545,8 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
 /* 기본 동기화 주소 — 설정에서 비우면 이 기기에만 저장된다 */
-const DEFAULT_SYNC = 'https://script.google.com/macros/s/AKfycbzLToZF2ukX94M6qpdymUmPL0fQE-T7_CJjsVL8MFklaoff5COX4DmHS-USp-ixGPqhgg/exec';
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1zRJjT09Nga9pDOFIVjj56UGlZD5zimRzyW8SWIk9gs4/edit';
+const DEFAULT_SYNC = 'https://script.google.com/macros/s/AKfycbyBHYfYSTCrykoPgXuYbqUTxMTnB1nS71igP6QPL6Blvnyad95BpFQFvsUKQGKEfEFkuA/exec';
 
 /* ══ 저장소 ══
    공유 데이터는 평평한 key-value 한 벌. 항목 단위로 병합되므로
@@ -516,7 +555,7 @@ const DEFAULT_SYNC = 'https://script.google.com/macros/s/AKfycbzLToZF2ukX94M6qpd
      x|2026-08-16    = 1   (제외일)
      m|2026-08|m3    = 1   (매달 항목)
      start           = 2026-08-13  (사이클 시작일)                      */
-const LK = 'chores.v2', LP = 'chores.pending', LU = 'chores.syncurl';
+const LK = 'chores.v2', LP = 'chores.pending', LU = 'chores.syncurl', LC = 'chores.tasks';
 
 let S = {};            // 공유 상태
 let pending = [];      // 아직 서버에 못 보낸 변경
@@ -541,6 +580,7 @@ function loadLocal(){
     syncUrl = (saved === null) ? DEFAULT_SYNC : saved;
   }catch(e){ syncUrl = DEFAULT_SYNC; }
   if (!S.start) S.start = iso(new Date());
+  applyTaskConfig(lsGet(LC, null));
 }
 function saveLocal(){ lsSet(LK, S); lsSet(LP, pending); }
 
@@ -602,6 +642,8 @@ async function pull(){
     S = j.data || {};
     pending.forEach(op => { if (op.v === null) delete S[op.k]; else S[op.k] = op.v; });
     if (!S.start) S.start = iso(new Date());
+    applyTaskConfig(j.tasks);          // '항목' 탭 내용을 반영 (없으면 기본 목록)
+    lsSet(LC, j.tasks || null);        // 오프라인에서도 같은 항목을 쓰도록 캐시
     saveLocal();
     busy = false; render();
   }catch(e){
@@ -672,7 +714,66 @@ function isOffDay(i){ return offAt(isoOf(i)); }
 function monthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
 function monthMark(mk, id){ return Number(S['m|' + mk + '|' + id] || 0); }
 
-function applies(t, dow){
+/* ══ 항목 정의 로드 ══
+   구글 시트의 '항목' 탭 내용을 앱 구조로 변환한다.
+   한 행이라도 형식이 틀리면 그 행만 건너뛰고, 쓸 수 있는 행이 하나도 없으면
+   코드에 내장된 기본 목록으로 되돌린다. */
+const DOW_CH = { '일':0, '월':1, '화':2, '수':3, '목':4, '금':5, '토':6 };
+
+function parseTaskRows(rows){
+  if (!Array.isArray(rows) || !rows.length) return null;
+  const daily = [], monthly = [];
+  const seen = {};
+
+  for (const r of rows){
+    const id = String(r.id || '').trim();
+    const name = String(r.name || '').trim();
+    const cat = String(r.cat || '').trim();
+    const freq = String(r.freq || '').trim();
+    if (!id || !name || !freq) continue;
+    if (seen[id]) continue;                       // ID 중복은 첫 행만 인정
+    if (String(r.use || '').toUpperCase() === 'N') continue;
+    if (CATS.indexOf(cat) === -1) continue;
+
+    const base = { id: id, cat: cat, name: name };
+    const sub = String(r.sub || '').trim();
+    if (sub) base.sub = sub;
+    const short = String(r.short || '').trim();
+    if (short) base.short = short;
+    const from = String(r.from || '').trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(from)) base.from = from;
+
+    if (freq === '매달'){
+      if (String(r.bonus || '').toUpperCase() === 'Y') base.bonus = true;
+      monthly.push(base); seen[id] = 1; continue;
+    }
+    if (freq === '매일'){ base.when = 'daily'; }
+    else if (freq === '주말'){ base.when = 'weekend'; }
+    else if (/^주\s*\d+\s*회$/.test(freq)){
+      const n = Number(String(r.target || '').trim()) || Number(freq.replace(/[^0-9]/g, ''));
+      if (!n) continue;
+      base.when = 'count'; base.target = n;
+    } else {
+      const days = freq.split(/[,·\s]+/).map(x => DOW_CH[x.trim()])
+                       .filter(d => d !== undefined);
+      if (!days.length) continue;
+      base.when = 'days'; base.days = days;
+    }
+    daily.push(base); seen[id] = 1;
+  }
+
+  if (!daily.length && !monthly.length) return null;
+  return { tasks: daily, monthly: monthly.length ? monthly : DEFAULT_MONTHLY };
+}
+
+function applyTaskConfig(rows){
+  const cfg = parseTaskRows(rows);
+  if (cfg){ TASKS = cfg.tasks; MONTHLY = cfg.monthly; cfgSource = 'sheet'; }
+  else { TASKS = DEFAULT_TASKS; MONTHLY = DEFAULT_MONTHLY; cfgSource = 'default'; }
+}
+
+function applies(t, dow, ds){
+  if (t.from && ds && ds < t.from) return false;   // 적용시작일 이전에는 나타나지 않는다
   if (t.when === 'daily') return true;
   if (t.when === 'weekend') return dow === 0 || dow === 6;
   if (t.when === 'days') return t.days.includes(dow);
@@ -680,7 +781,7 @@ function applies(t, dow){
 }
 function scheduledAt(ds){
   const dow = parse(ds).getDay();
-  return TASKS.filter(t => applies(t, dow));
+  return TASKS.filter(t => applies(t, dow, ds));
 }
 function scheduled(i){ return scheduledAt(isoOf(i)); }
 
@@ -712,12 +813,22 @@ function ownerAt(startISO, w){
   return S[ownerKeyAt(startISO, w)] || '';
 }
 
+/* 하루 완주 — 그날 예정된 항목을 전부 이행했는가.
+   제외일(여행)은 대상이 아니고, 요일이 없는 주간 횟수 항목은 판정에 넣지 않는다. */
+function dayComplete(ds){
+  if (offAt(ds)) return false;
+  const sch = scheduledAt(ds);
+  return sch.length > 0 && sch.every(t => markAt(ds, t.id) === 1);
+}
+const won = n => n.toLocaleString('ko-KR') + '원';
+
 /* 주차별 집계 — 정산 화면과 상단 배지가 같은 계산을 쓴다 */
 function tallyWeek(startISO, w){
-  let ok = 0, no = 0, conf = 0, offDays = 0;
+  let ok = 0, no = 0, conf = 0, offDays = 0, full = 0;
   const now = new Date(); now.setHours(0,0,0,0);
   for (const ds of weekDays(startISO, w)){
     if (offAt(ds)){ offDays++; continue; }
+    if (dayComplete(ds)) full++;
     const past = parse(ds) < now;
     for (const t of scheduledAt(ds)){
       const m = markAt(ds, t.id);
@@ -727,12 +838,16 @@ function tallyWeek(startISO, w){
       if (confAt(ds, t.id)) conf++;
     }
   }
+  // 주간 횟수 목표 — 완주 판정에는 넣지 않고 정산에서 참고용으로 보여준다
+  const goals = [];
   for (const t of TASKS.filter(x => x.when === 'count')){
     const n = weekCountAt(startISO, w, t.id);
+    const tg = targetAt(startISO, w, t);
     ok += n;
-    if (parse(isoFrom(startISO, w*7+6)) < now) no += Math.max(0, targetAt(startISO, w, t) - n);
+    if (parse(isoFrom(startISO, w*7+6)) < now) no += Math.max(0, tg - n);
+    goals.push({ id: t.id, name: t.short || t.name, n: n, tg: tg, hit: n >= tg });
   }
-  return { ok, no, conf, offDays };
+  return { ok, no, conf, offDays, full, goals, money: full * DAY_BONUS };
 }
 
 /* 체크 탭(= 보고 있는 사이클)용 짧은 이름들 */
@@ -870,8 +985,11 @@ function render(){
 
   const sch = scheduled(selDay);
   const done = sch.filter(t => markOf(selDay, t.id) === 1).length;
-  document.getElementById('dprog').textContent =
-    off ? '' : (sch.length ? `${done} / ${sch.length}` : '');
+  const dprog = document.getElementById('dprog');
+  if (off) dprog.textContent = '';
+  else if (dayComplete(isoOf(selDay)))
+    dprog.innerHTML = `<span class="fullday">완주 +${won(DAY_BONUS)}</span>`;
+  else dprog.textContent = sch.length ? `${done} / ${sch.length}` : '';
 
   const locked = isLocked(selWeek);
   const listEl = document.getElementById('list');
@@ -933,6 +1051,7 @@ function render(){
 
   // 설정 입력값 반영 (포커스 중이면 건드리지 않음)
   syncField('syncurl', syncUrl);
+  renderCfgInfo();
 }
 
 /* 사이클 상태 — 3주 전체 마감 또는 기간 종료면 'done' */
@@ -960,26 +1079,36 @@ function renderSettle(){
     const a = parse(cs), b = dayFrom(cs, 20);
     const st = cycleState(cs);
     const cur = cs === currentCycle();
-    const sum = { ok:0, no:0, conf:0, offDays:0 };
+    const sum = { ok:0, no:0, conf:0, offDays:0, full:0, goalHit:0, goalAll:0 };
 
     const rows = [0,1,2].map(w => {
       const t = tallyWeek(cs, w), lk = isLockedAt(cs, w);
       sum.ok += t.ok; sum.no += t.no; sum.conf += t.conf; sum.offDays += t.offDays;
+      sum.full += t.full;
+      sum.goalAll += t.goals.length; sum.goalHit += t.goals.filter(g => g.hit).length;
       const wa = dayFrom(cs, w*7), wb = dayFrom(cs, w*7+6);
       const own = ownerAt(cs, w);
       return `<div class="srow" data-locked="${lk ? 1 : 0}">
         <div class="stxt">
           <div class="snm">${w+1}주차
             <span class="sdate num">${md(wa)} ~ ${md(wb)}</span>
-            ${own ? `<span class="sown">${own}</span>` : ''}</div>
+            ${own ? `<span class="sown">${own}</span>` : ''}
+            ${t.money ? `<span class="wmoney num">+${won(t.money)}</span>` : ''}</div>
           <div class="ssub num">
-            <b class="g">이행 ${t.ok}</b> · <b class="r">미이행 ${t.no}</b> · 확인 ${t.conf}${
+            <b class="g">완주 ${t.full}일</b> · 이행 ${t.ok} · <b class="r">미이행 ${t.no}</b>${
             t.offDays ? ` · 제외 ${t.offDays}일` : ''}</div>
+          <div class="goals">${t.goals.map(g =>
+            `<span class="goal${g.hit ? ' hit' : ''}">${g.name} <b class="num">${g.n}/${g.tg}</b></span>`
+          ).join('')}</div>
         </div>
         <button type="button" class="lockbtn" data-lock="${w}" data-cs="${cs}"
           aria-pressed="${lk ? 'true' : 'false'}">${lk ? IC_LOCK + '마감' : '정산완료'}</button>
       </div>`;
     }).join('');
+
+    // 추가 청소 보너스 — 매달 항목 중 bonus 대상이 완료된 건 (3주차가 속한 달 기준)
+    const bmk = monthKey(dayFrom(cs, 14));
+    const bonusItems = MONTHLY.filter(t => t.bonus && monthMark(bmk, t.id) === 1).map(t => t.name);
 
     return `<li class="cyccard${cur ? ' cur' : ''}${cs === baseStart() ? ' viewing' : ''}"
       data-state="${st}" data-open="${cs}">
@@ -992,8 +1121,19 @@ function renderSettle(){
       </div>
       ${rows}
       <div class="cycfoot num">
-        3주 합계 &nbsp;<b class="g">이행 ${sum.ok}</b> · <b class="r">미이행 ${sum.no}</b>
-        · 확인 ${sum.conf}${sum.offDays ? ` · 제외 ${sum.offDays}일` : ''}
+        <div class="cfline">3주 합계 &nbsp;<b class="g">완주 ${sum.full}일</b> ·
+          이행 ${sum.ok} · <b class="r">미이행 ${sum.no}</b> · 확인 ${sum.conf}${
+          sum.offDays ? ` · 제외 ${sum.offDays}일` : ''} ·
+          주간 목표 <b class="${sum.goalHit === sum.goalAll ? 'g' : 'r'}">${sum.goalHit}/${sum.goalAll}</b> 달성</div>
+        <div class="cfmoney">
+          <span>일일 완주 ${sum.full}일 × ${won(DAY_BONUS)}</span>
+          <b>+${won(sum.full * DAY_BONUS)}</b></div>
+        ${bonusItems.length ? `<div class="cfmoney">
+          <span>추가 청소 ${bonusItems.length}건 <i>${bonusItems.join(' · ')}</i></span>
+          <b>+${won(bonusItems.length * CLEAN_BONUS)}</b></div>` : ''}
+        <div class="cfmoney total">
+          <span>보너스 합계</span>
+          <b>+${won(sum.full * DAY_BONUS + bonusItems.length * CLEAN_BONUS)}</b></div>
       </div>
     </li>`;
   };
@@ -1010,6 +1150,18 @@ function renderSettle(){
   document.getElementById('donesec').hidden = done.length === 0;
   document.getElementById('donecount').textContent = done.length ? `${done.length}` : '';
   document.getElementById('settledone').innerHTML = done.map(card).join('');
+}
+
+function renderCfgInfo(){
+  const a = document.getElementById('sheetlink');
+  if (a && a.getAttribute('href') !== SHEET_URL) a.href = SHEET_URL;
+  const el = document.getElementById('cfginfo');
+  if (!el) return;
+  const n = TASKS.length + MONTHLY.length;
+  el.innerHTML = cfgSource === 'sheet'
+    ? `구글 시트 <b>항목</b> 탭에서 읽음 · 총 ${n}개. 시트를 고치면 앱에 반영됩니다.`
+    : `앱에 내장된 <b>기본 목록</b>으로 동작 중 · 총 ${n}개.
+       시트에 <b>항목</b> 탭이 없거나 형식이 맞지 않습니다.`;
 }
 
 function syncField(id, val){
