@@ -37,6 +37,7 @@
   }
 
   *{box-sizing:border-box}
+  [hidden]{display:none !important}   /* CSS의 display 가 hidden 을 덮어쓰는 것을 막는다 */
   html{-webkit-text-size-adjust:100%}
   body{
     margin:0; background:var(--bg); color:var(--ink);
@@ -114,6 +115,7 @@
   .pill.ok{background:var(--accent-soft);color:var(--accent)}
   .pill.no{background:var(--warn-soft);color:var(--warn)}
   .pill.offp{background:var(--surface-2);color:var(--muted)}
+  .pill.money{background:var(--accent);color:var(--on-accent)}
 
   .days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
   .day{border:1.5px solid transparent;background:var(--surface-2);border-radius:11px;
@@ -166,6 +168,8 @@
             background:var(--accent-soft);padding:1px 7px;border-radius:999px;margin-left:6px}
   li .badge.done{background:var(--accent);color:var(--on-accent)}
   li .badge.wk{background:var(--surface-2);color:var(--muted);font-weight:800;letter-spacing:.3px}
+  li .badge.bonus{background:transparent;border:1px solid var(--accent);color:var(--accent);
+    font-weight:800}
   li[data-st="1"] .nm{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1.5px}
   li[data-st="2"] .nm{color:var(--warn)}
 
@@ -187,11 +191,22 @@
     background:var(--accent-soft);color:var(--accent)}
   @media (prefers-reduced-motion:reduce){ li .mk,li .ck{transition:none} }
 
+  /* 주간 목표 횟수 스테퍼 */
+  .stepper{flex:0 0 auto;display:flex;align-items:center;gap:2px;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:2px}
+  .stepper button{width:30px;height:30px;border:none;background:none;border-radius:8px;
+    font-size:17px;font-weight:800;line-height:1;color:var(--ink);display:grid;place-items:center}
+  .stepper button:disabled{opacity:.25}
+  .stepper button:active{background:var(--surface)}
+  .stepper .gn{min-width:20px;text-align:center;font-size:15px;font-weight:800}
+  li[data-st="1"] .stepper .gn{color:var(--accent)}
+
   /* 열 제목 */
   .collegend{display:flex;justify-content:flex-end;gap:10px;padding:0 12px 0 0;
     margin:0 0 5px;font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--muted)}
   .collegend span{text-align:center}
   .collegend .a{width:38px}
+  .collegend.wide .a{width:96px}
   .collegend .b{width:32px}
 
   .empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;
@@ -229,6 +244,7 @@
               padding:2px 7px;border-radius:999px}
   .srow .ssub{font-size:12px;color:var(--muted);margin-top:3px;font-weight:600}
   .srow .ssub b{font-weight:800}
+  .wbreak{font-size:11px;color:var(--muted);margin-top:3px;font-weight:600;line-height:1.5}
   .goals{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
   .goal{font-size:10.5px;font-weight:700;color:var(--muted);background:var(--surface-2);
     border:1px solid var(--line);padding:2px 7px;border-radius:999px;white-space:nowrap}
@@ -284,6 +300,32 @@
     padding:2px 7px;border-radius:999px}
   .fullday{font-size:11px;font-weight:800;color:var(--accent);
     background:var(--accent-soft);padding:3px 8px;border-radius:999px}
+  .fullday.dim{background:transparent;border:1px solid var(--line);color:var(--muted);margin-left:5px}
+  .dayhead .left{font-size:12.5px;font-weight:700;color:var(--muted)}
+
+  /* 진입 선택 */
+  .gate{position:fixed;inset:0;z-index:20;background:var(--bg);
+    display:grid;place-items:center;padding:24px}
+  .gatebox{width:100%;max-width:340px;text-align:center}
+  .gatebox .gt{font-size:22px;font-weight:800;letter-spacing:-.6px;margin-bottom:6px}
+  .gatebox .gs{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:22px}
+  .gbtns{display:flex;flex-direction:column;gap:10px}
+  .gbtns button{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;
+    padding:18px;font-size:17px;font-weight:800;letter-spacing:-.3px;box-shadow:var(--shadow)}
+  .gbtns button:active{border-color:var(--accent);color:var(--accent)}
+
+  .mechip{border:1px solid var(--line);background:var(--surface);border-radius:999px;
+    font-size:11.5px;font-weight:800;padding:4px 10px;color:var(--ink);white-space:nowrap}
+
+  .seg2{display:flex;gap:4px;background:var(--surface-2);border-radius:10px;padding:3px}
+  .seg2 button{flex:1;border:none;background:none;border-radius:8px;padding:9px 0;
+    font-size:13.5px;font-weight:700;color:var(--muted)}
+  .seg2 button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
+
+  /* 내 차례가 아닌 버튼 */
+  body.noexec li .mk, body.noexec .stepper{opacity:.3}
+  body.noconf li .ck{opacity:.3}
+  .seg2.off{opacity:.4}
 
   /* ─ 하단 탭바 ─ */
   .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:9;
@@ -344,6 +386,7 @@
 <header>
   <div class="titlerow">
     <h1>집안일 3주 사이클</h1>
+    <button type="button" class="mechip" id="mechip" hidden></button>
     <span class="sync" id="sync">로컬 저장</span>
   </div>
 </header>
@@ -375,13 +418,13 @@
       <span class="pill ok num" id="t-ok">이행 0</span>
       <span class="pill no num" id="t-no">미이행 0</span>
       <span class="pill offp num" id="t-off" hidden></span>
+      <span class="pill money num" id="t-money" hidden></span>
     </div>
   </div>
   <div class="days" id="days"></div>
   <div class="owner">
-    <label class="ol" for="ownerin" id="ownerlabel">담당자</label>
-    <input id="ownerin" type="text" autocomplete="off" enterkeyhint="done"
-           placeholder="이름 입력" maxlength="12">
+    <span class="ol" id="ownerlabel">담당자</span>
+    <div class="seg2" id="ownerseg"></div>
   </div>
 </div>
 
@@ -396,9 +439,9 @@
 <div id="list"></div>
 
 <section id="wsec">
-  <div class="shead"><h2>이번 주 목표</h2><span class="note">횟수로 채우는 항목</span></div>
-  <div class="collegend"><span class="a">실행</span><span class="b">확인</span></div>
-  <ul id="weekly"></ul>
+  <div class="shead"><h2>이번 주 목표</h2><span class="note" id="wsum"></span></div>
+  <div class="collegend wide"><span class="a">횟수</span><span class="b">확인</span></div>
+  <div id="weeklywrap"></div>
 </section>
 
 <section id="msec">
@@ -420,7 +463,7 @@
   <div class="shead"><h2>진행 · 대기</h2><span class="note" id="settlerange"></span></div>
   <ul id="settle" class="settle"></ul>
   <div class="settlenote">
-    기본 용돈 <b>매달 500,000원</b> · 하루 전부 이행 <b>+10,000원</b> · 추가 청소 1건 <b>+10,000원</b><br>
+    기본 용돈 <b>매달 500,000원</b> · 하루 전부 이행 <b>+10,000원</b> · 추가 청소는 항목별 금액<br>
     정산완료를 누르면 그 주차는 <b>마감</b>되어 더 이상 수정할 수 없습니다.
     3주 전체를 마감하거나 기간이 지나면 <b>종료</b>로 옮겨집니다.</div>
 </section>
@@ -460,6 +503,11 @@
       <div class="field">
         <label>항목 설정</label>
         <div class="hint" id="cfginfo"></div>
+        <button type="button" class="setbtn" id="cfgreload">항목 다시 읽기</button>
+      </div>
+      <div class="field">
+        <label>이 기기 사용자</label>
+        <div class="seg2" id="meseg"></div>
       </div>
       <a class="setbtn link" id="sheetlink" href="#" target="_blank" rel="noopener">
         구글 시트 열기 (항목 · 데이터 확인)</a>
@@ -472,6 +520,14 @@
 </div><!-- /v-settle -->
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<div class="gate" id="gate" hidden>
+  <div class="gatebox">
+    <div class="gt">누구세요?</div>
+    <div class="gs">이 기기에 저장돼요. 다음부터는 바로 들어갑니다.</div>
+    <div class="gbtns" id="gatebtns"></div>
+  </div>
+</div>
 
 </div>
 
@@ -493,40 +549,42 @@
 const DEFAULT_TASKS = [
   {id:'b1', cat:'화장실', name:'변기 커버 이물질 확인', when:'daily'},
   {id:'b2', cat:'화장실', name:'소모품 채우기', when:'daily'},
-  {id:'b3', cat:'화장실', name:'변기 청소 · 하수구 청소', when:'weekend'},
+  {id:'b3', cat:'화장실', name:'변기 청소 · 하수구 청소', short:'변기', when:'count', target:1},
   {id:'k1', cat:'주방', name:'당일 설거지', when:'daily'},
   {id:'k2', cat:'주방', name:'전일 설거지 · 식기 정리', when:'daily'},
   {id:'k5', cat:'주방', name:'얼음 · 물 채워넣기', when:'daily'},
-  {id:'k3', cat:'주방', name:'싱크대 및 하수구 청소', when:'weekend'},
-  {id:'k4', cat:'주방', name:'가스레인지 청소', when:'weekend'},
+  {id:'k3', cat:'주방', name:'싱크대 및 하수구 청소', short:'싱크대', when:'count', target:1},
+  {id:'k4', cat:'주방', name:'가스레인지 청소', short:'가스레인지', when:'count', target:1},
   {id:'l1', cat:'거실', name:'쓰레기통 · 분리수거통 비우기', when:'daily'},
   {id:'l2', cat:'거실', name:'택배 정리 · 박스 버리기', when:'daily'},
   {id:'l3', cat:'거실', name:'테이블 및 쓰레기 정리', when:'daily'},
-  {id:'l4', cat:'거실', name:'누누 물주기', when:'weekend'},
+  {id:'l4', cat:'거실', name:'누누 물주기', short:'누누물', when:'count', target:1},
   {id:'w1', cat:'세탁', name:'건조된 세탁물 정리', sub:'D+1일까지', when:'daily'},
   {id:'w2', cat:'세탁', name:'종량제봉투 내다놓기', sub:'화 · 목 · 일', when:'days', days:[2,4,0]},
-  {id:'w6', cat:'세탁', name:'베개 커버 교체', when:'weekend'},
+  {id:'w6', cat:'세탁', name:'베개 커버 교체', short:'베개커버', when:'count', target:1},
   {id:'w3', cat:'세탁', name:'수건 빨래', short:'수건', when:'count', target:1},
   {id:'w4', cat:'세탁', name:'옷 빨래', short:'옷', when:'count', target:1},
   {id:'w5', cat:'세탁', name:'팬티 빨래', short:'팬티', when:'count', target:1},
   {id:'c1', cat:'청소', name:'로봇 청소기', short:'로봇', when:'count', target:3},
-  {id:'c2', cat:'청소', name:'진공 청소기 · 스팀 청소기', when:'weekend'},
+  {id:'c3', cat:'청소', name:'서랍 위 등 전체 먼지 제거', short:'먼지', when:'count', target:1, bonus:5000, from:'2026-08-31'},
+  {id:'x1', cat:'청소', name:'추가 청소', sub:'한 건 할 때마다 1씩 올리세요', short:'추가청소', when:'count', target:0, bonus:5000},
+  {id:'c2', cat:'청소', name:'진공 청소기 · 스팀 청소기', short:'진공', when:'count', target:1},
 ];
 
-/* bonus: true 면 진행 시 추가 청소 보너스(+10,000원) 대상 */
+/* bonus 에 금액을 넣으면 추가 청소 보너스 대상이 된다 */
 const DEFAULT_MONTHLY = [
   {id:'m1', cat:'화장실', name:'화장실 전체 청소'},
   {id:'m2', cat:'주방', name:'냉장고 · 음쓰 정리'},
-  {id:'m3', cat:'세탁', name:'이불 세탁', bonus:true},
+  {id:'m3', cat:'세탁', name:'이불 세탁', bonus:10000},
   {id:'m4', cat:'청소', name:'집안 전체 먼지 제거'},
-  {id:'m5', cat:'청소', name:'창틀 청소', bonus:true},
-  {id:'m6', cat:'청소', name:'공청기 필터 청소', bonus:true},
+  {id:'m5', cat:'청소', name:'창틀 청소', bonus:10000},
+  {id:'m6', cat:'청소', name:'공청기 필터 청소', bonus:10000},
 ];
 
 /* ── 용돈 ── */
 const MONTHLY_BASE = 500000;   // 매달 기본 용돈
 const DAY_BONUS    = 10000;    // 하루 전부 이행
-const CLEAN_BONUS  = 10000;    // 추가 청소 1건
+const CLEAN_BONUS  = 10000;    // 추가 청소 기본값 (항목에 금액이 없을 때)
 
 let TASKS = DEFAULT_TASKS;
 let MONTHLY = DEFAULT_MONTHLY;
@@ -543,6 +601,7 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
 /* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
+const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
 /* 기본 동기화 주소 — 설정에서 비우면 이 기기에만 저장된다 */
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1zRJjT09Nga9pDOFIVjj56UGlZD5zimRzyW8SWIk9gs4/edit';
@@ -555,7 +614,8 @@ const DEFAULT_SYNC = 'https://script.google.com/macros/s/AKfycbyBHYfYSTCrykoPgXu
      x|2026-08-16    = 1   (제외일)
      m|2026-08|m3    = 1   (매달 항목)
      start           = 2026-08-13  (사이클 시작일)                      */
-const LK = 'chores.v2', LP = 'chores.pending', LU = 'chores.syncurl', LC = 'chores.tasks';
+const LK = 'chores.v2', LP = 'chores.pending', LU = 'chores.syncurl',
+      LC = 'chores.tasks', LM = 'chores.me';
 
 let S = {};            // 공유 상태
 let pending = [];      // 아직 서버에 못 보낸 변경
@@ -567,6 +627,7 @@ let pickStart = null;    // 달력에서 고른 값. '시작하기' 를 누를 �
 /* S.start 는 '진행 중인 사이클', viewCycle 은 '체크 탭에서 보고 있는 사이클'.
    둘을 분리해야 새 사이클을 시작한 뒤에도 지난 사이클을 열어볼 수 있다. */
 let viewCycle = null;
+let me = null;           // 이 기기를 쓰는 사람. 기기별로 저장된다
 
 function lsGet(k, d){ try{ const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v); }catch(e){ return d; } }
 function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
@@ -575,6 +636,7 @@ function loadLocal(){
   S = lsGet(LK, null) || migrateV1() || {};
   pending = lsGet(LP, []) || [];
   // 저장된 값이 없으면 기본 주소 사용. 설정에서 지우면 빈 값이 저장되어 로컬 전용이 된다.
+  try{ me = localStorage.getItem(LM) || null; }catch(e){ me = null; }
   try{
     const saved = localStorage.getItem(LU);
     syncUrl = (saved === null) ? DEFAULT_SYNC : saved;
@@ -603,6 +665,19 @@ function toast(msg){
   el.dataset.show = '1';
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { el.dataset.show = '0'; }, 1800);
+}
+
+/* 주차 담당자만 '실행'을, 상대방만 '확인'을 누를 수 있다.
+   담당자가 정해지지 않은 주차는 둘 다 허용한다. */
+function ownerOfWeek(w){ return ownerAt(baseStart(), w); }
+function canExec(w){ const o = ownerOfWeek(w); return !o || !me || me === o; }
+function canConf(w){ const o = ownerOfWeek(w); return !o || !me || me !== o; }
+function denyExec(){
+  toast(`${selWeek+1}주차 실행은 ${ownerOfWeek(selWeek)} 담당이에요`);
+}
+function denyConf(){
+  const o = ownerOfWeek(selWeek);
+  toast(`확인은 ${PEOPLE.find(p => p !== o) || '상대방'} 몫이에요`);
 }
 
 /* 마감된 주차는 편집 불가 */
@@ -743,12 +818,16 @@ function parseTaskRows(rows){
     const from = String(r.from || '').trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(from)) base.from = from;
 
+    const bon = bonusAmount(r.bonus);
+    if (bon) base.bonus = bon;
     if (freq === '매달'){
-      if (String(r.bonus || '').toUpperCase() === 'Y') base.bonus = true;
       monthly.push(base); seen[id] = 1; continue;
     }
     if (freq === '매일'){ base.when = 'daily'; }
     else if (freq === '주말'){ base.when = 'weekend'; }
+    else if (freq === '횟수'){
+      base.when = 'count'; base.target = 0;      // 목표 없이 횟수만 센다
+    }
     else if (/^주\s*\d+\s*회$/.test(freq)){
       const n = Number(String(r.target || '').trim()) || Number(freq.replace(/[^0-9]/g, ''));
       if (!n) continue;
@@ -764,6 +843,15 @@ function parseTaskRows(rows){
 
   if (!daily.length && !monthly.length) return null;
   return { tasks: daily, monthly: monthly.length ? monthly : DEFAULT_MONTHLY };
+}
+
+/* 보너스 열 — 'Y' 는 기본 금액, 숫자를 적으면 그 금액. 비우면 보너스 없음 */
+function bonusAmount(v){
+  const t = String(v == null ? '' : v).trim();
+  if (!t) return 0;
+  if (t.toUpperCase() === 'Y') return CLEAN_BONUS;
+  const n = Number(t.replace(/[^0-9]/g, ''));
+  return n > 0 ? n : 0;
 }
 
 function applyTaskConfig(rows){
@@ -792,7 +880,7 @@ function weekDays(startISO, w){
   return out;
 }
 function weekCountAt(startISO, w, id){
-  return weekDays(startISO, w).filter(ds => markAt(ds, id) === 1).length;
+  return goalCount(startISO, w, id);
 }
 function offCountAt(startISO, w){
   return weekDays(startISO, w).filter(ds => offAt(ds)).length;
@@ -813,6 +901,19 @@ function ownerAt(startISO, w){
   return S[ownerKeyAt(startISO, w)] || '';
 }
 
+/* 주간 목표는 요일과 무관하므로 '주 단위'로 저장한다.
+   g|<주 첫날>|<항목ID>  = 횟수      gc|<주 첫날>|<항목ID> = 확인
+   덕분에 어느 날짜를 보고 있든 같은 값이 보인다. */
+function goalKey(startISO, w, id){ return 'g|' + isoFrom(startISO, w*7) + '|' + id; }
+function goalConfKey(startISO, w, id){ return 'gc|' + isoFrom(startISO, w*7) + '|' + id; }
+function goalCount(startISO, w, id){ return Number(S[goalKey(startISO, w, id)] || 0); }
+function goalConf(startISO, w, id){ return Number(S[goalConfKey(startISO, w, id)] || 0); }
+
+/* 주간 횟수 목표 항목. 적용시작일이 그 주보다 뒤면 아직 대상이 아니다 */
+function countTasks(weekEndISO){
+  return TASKS.filter(t => t.when === 'count' && !(t.from && weekEndISO < t.from));
+}
+
 /* 하루 완주 — 그날 예정된 항목을 전부 이행했는가.
    제외일(여행)은 대상이 아니고, 요일이 없는 주간 횟수 항목은 판정에 넣지 않는다. */
 function dayComplete(ds){
@@ -821,6 +922,43 @@ function dayComplete(ds){
   return sch.length > 0 && sch.every(t => markAt(ds, t.id) === 1);
 }
 const won = n => n.toLocaleString('ko-KR') + '원';
+
+/* 한 주의 보너스 — 일일 완주 + 그 주에 올린 추가 청소 횟수 */
+function weekBonus(startISO, w){
+  const t = tallyWeek(startISO, w);
+  const items = [];
+  for (const task of TASKS){
+    if (!task.bonus || task.when !== 'count') continue;
+    const n = goalCount(startISO, w, task.id);
+    if (n) items.push({ name: task.short || task.name, n: n, amt: task.bonus });
+  }
+  const extra = items.reduce((a, b) => a + b.n * b.amt, 0);
+  return { full: t.full, dayAmt: t.full * DAY_BONUS, items: items,
+           extra: extra, total: t.full * DAY_BONUS + extra };
+}
+
+/* 사이클의 추가 청소 보너스.
+   매달 항목은 그 달에 1회, 일반 항목은 완료한 날마다 금액이 쌓인다. */
+function bonusLines(startISO){
+  const out = [];
+  const bmk = monthKey(dayFrom(startISO, 14));
+  for (const t of MONTHLY){
+    if (t.bonus && monthMark(bmk, t.id) === 1)
+      out.push({ name: t.name, n: 1, amt: t.bonus, monthly: true });
+  }
+  for (const t of TASKS){
+    if (!t.bonus) continue;
+    let n = 0;
+    if (t.when === 'count'){
+      for (let w = 0; w < 3; w++) n += goalCount(startISO, w, t.id);
+    } else {
+      for (let i = 0; i < 21; i++) if (markAt(isoFrom(startISO, i), t.id) === 1) n++;
+    }
+    if (n) out.push({ name: t.name, n: n, amt: t.bonus });
+  }
+  return out;
+}
+const bonusSum = lines => lines.reduce((a, b) => a + b.n * b.amt, 0);
 
 /* 주차별 집계 — 정산 화면과 상단 배지가 같은 계산을 쓴다 */
 function tallyWeek(startISO, w){
@@ -840,12 +978,13 @@ function tallyWeek(startISO, w){
   }
   // 주간 횟수 목표 — 완주 판정에는 넣지 않고 정산에서 참고용으로 보여준다
   const goals = [];
-  for (const t of TASKS.filter(x => x.when === 'count')){
+  for (const t of countTasks(isoFrom(startISO, w*7+6))){
     const n = weekCountAt(startISO, w, t.id);
     const tg = targetAt(startISO, w, t);
     ok += n;
     if (parse(isoFrom(startISO, w*7+6)) < now) no += Math.max(0, tg - n);
-    goals.push({ id: t.id, name: t.short || t.name, n: n, tg: tg, hit: n >= tg });
+    goals.push({ id: t.id, name: t.short || t.name, n: n, tg: tg,
+                 hit: tg > 0 ? n >= tg : n > 0 });
   }
   return { ok, no, conf, offDays, full, goals, money: full * DAY_BONUS };
 }
@@ -969,9 +1108,11 @@ function render(){
               <span class="dot ${cls}"></span></button>`;
   }).join('');
 
-  // 주차별 담당자
-  document.getElementById('ownerlabel').textContent = `${selWeek+1}주차 담당자`;
-  syncField('ownerin', ownerAt(baseStart(), selWeek));
+  // 주차별 담당자 — 두 사람 중 선택
+  document.getElementById('ownerlabel').textContent = `${selWeek+1}주차 담당`;
+  const own = ownerAt(baseStart(), selWeek);
+  document.getElementById('ownerseg').innerHTML = PEOPLE.map(pn =>
+    `<button type="button" data-own="${pn}" aria-pressed="${pn === own}">${pn}</button>`).join('');
 
   const d = dateOf(selDay);
   document.getElementById('dtitle').textContent =
@@ -986,16 +1127,22 @@ function render(){
   const sch = scheduled(selDay);
   const done = sch.filter(t => markOf(selDay, t.id) === 1).length;
   const dprog = document.getElementById('dprog');
-  if (off) dprog.textContent = '';
+  if (off) dprog.innerHTML = '';
   else if (dayComplete(isoOf(selDay)))
     dprog.innerHTML = `<span class="fullday">완주 +${won(DAY_BONUS)}</span>`;
-  else dprog.textContent = sch.length ? `${done} / ${sch.length}` : '';
+  else if (sch.length)
+    dprog.innerHTML = `<span class="left num">${done} / ${sch.length}</span>`
+                    + `<span class="fullday dim num">+${won(DAY_BONUS)}</span>`;
+  else dprog.innerHTML = '';
 
   const locked = isLocked(selWeek);
+  const exec = canExec(selWeek), conf = canConf(selWeek);
+  document.body.classList.toggle('noexec', !exec);
+  document.body.classList.toggle('noconf', !conf);
   const listEl = document.getElementById('list');
   listEl.dataset.locked = locked ? 1 : 0;
   document.getElementById('offbtn').disabled = locked;
-  document.getElementById('ownerin').readOnly = locked;
+  document.getElementById('ownerseg').classList.toggle('off', locked);
   document.getElementById('collegend').hidden = off || sch.length === 0;
 
   const lockBanner = locked
@@ -1015,15 +1162,41 @@ function render(){
         </div>`).join(''));
 
   // 주간 횟수 목표
-  document.getElementById('weekly').innerHTML =
-    TASKS.filter(t => t.when === 'count').map(t => {
+  const wtasks = countTasks(isoOf(selWeek*7+6));
+  const weeklyRow = t => {
       const tg = targetOf(selWeek, t);
-      const n = weekCount(selWeek, t.id), hit = n >= tg;
-      return row(t, markOf(selDay, t.id),
-        `<span class="badge${hit?' done':''} num">${n} / ${tg}</span>`,
-        tg !== t.target ? `제외일 반영 (원래 주 ${t.target}회)` : t.cat,
-        confOf(selDay, t.id));
-    }).join('');
+      const n = weekCount(selWeek, t.id);
+      const hit = tg > 0 ? n >= tg : n > 0;
+      const sub = tg !== t.target ? `제외일 반영 (원래 주 ${t.target}회)` : (t.sub || t.cat);
+      const cf = goalConf(baseStart(), selWeek, t.id);
+      return `<li data-st="${hit ? 1 : 0}" data-cf="${cf ? 1 : 0}">
+        <div class="txt">
+          <div class="nm">${t.name}
+            <span class="badge${hit ? ' done' : ''} num">${tg > 0 ? `${n} / ${tg}` : `${n}회`}</span>${
+              t.bonus ? `<span class="badge bonus num">1회당 +${won(t.bonus)}</span>` : ''}</div>
+          <div class="sb">${sub}</div>
+        </div>
+        <div class="stepper">
+          <button type="button" data-gminus="${t.id}" aria-label="${t.name} 횟수 줄이기"
+            ${n ? '' : 'disabled'}>−</button>
+          <span class="gn num">${n}</span>
+          <button type="button" data-gplus="${t.id}" aria-label="${t.name} 횟수 늘리기">+</button>
+        </div>
+        <button type="button" class="ck" data-gck="${t.id}" aria-pressed="${cf ? 'true' : 'false'}"
+          aria-label="${t.name} 확인">${IC_CHECK}</button>
+      </li>`;
+  };
+  document.getElementById('weeklywrap').innerHTML =
+    CATS.filter(c => wtasks.some(t => t.cat === c)).map(c => `
+      <div class="group">
+        <div class="glabel">${c}</div>
+        <ul>${wtasks.filter(t => t.cat === c).map(weeklyRow).join('')}</ul>
+      </div>`).join('');
+
+  // 이번 주 보너스 합계
+  const bwk = weekBonus(baseStart(), selWeek);
+  document.getElementById('wsum').innerHTML = bwk.total
+    ? `<b>+${won(bwk.total)}</b>` : '횟수로 채우는 항목';
 
   // 매달 항목은 3주차에만 (시트 구조: 1·2주차 표는 동일, 3주차 표에만 '매달' 열이 있음)
   const mk = monthKey(d);
@@ -1032,7 +1205,9 @@ function render(){
   document.getElementById('monthly').innerHTML = MONTHLY.map(t => {
     const st = monthMark(mk, t.id), cf = monthConf(mk, t.id);
     return `<li data-st="${st}" data-cf="${cf ? 1 : 0}">
-      <div class="txt"><div class="nm">${t.name}</div><div class="sb">${t.cat}</div></div>
+      <div class="txt">
+        <div class="nm">${t.name}${t.bonus ? `<span class="badge bonus num">+${won(t.bonus)}</span>` : ''}</div>
+        <div class="sb">${t.cat}</div></div>
       <button type="button" class="mk" data-mm="${t.id}"
         aria-label="${t.name} 실행 상태 변경">${MARK_ICON[st]}</button>
       <button type="button" class="ck" data-cmm="${t.id}" aria-pressed="${cf ? 'true' : 'false'}"
@@ -1046,6 +1221,10 @@ function render(){
   const toff = document.getElementById('t-off');
   toff.hidden = tw.offDays === 0;
   toff.textContent = `제외 ${tw.offDays}일`;
+  const bwk2 = weekBonus(baseStart(), selWeek);
+  const tmoney = document.getElementById('t-money');
+  tmoney.hidden = !bwk2.total;
+  tmoney.textContent = `+${won(bwk2.total)}`;
 
   renderSettle();
 
@@ -1082,10 +1261,11 @@ function renderSettle(){
     const sum = { ok:0, no:0, conf:0, offDays:0, full:0, goalHit:0, goalAll:0 };
 
     const rows = [0,1,2].map(w => {
-      const t = tallyWeek(cs, w), lk = isLockedAt(cs, w);
+      const t = tallyWeek(cs, w), lk = isLockedAt(cs, w), bw = weekBonus(cs, w);
       sum.ok += t.ok; sum.no += t.no; sum.conf += t.conf; sum.offDays += t.offDays;
       sum.full += t.full;
-      sum.goalAll += t.goals.length; sum.goalHit += t.goals.filter(g => g.hit).length;
+      const scored = t.goals.filter(g => g.tg > 0);
+      sum.goalAll += scored.length; sum.goalHit += scored.filter(g => g.hit).length;
       const wa = dayFrom(cs, w*7), wb = dayFrom(cs, w*7+6);
       const own = ownerAt(cs, w);
       return `<div class="srow" data-locked="${lk ? 1 : 0}">
@@ -1093,12 +1273,15 @@ function renderSettle(){
           <div class="snm">${w+1}주차
             <span class="sdate num">${md(wa)} ~ ${md(wb)}</span>
             ${own ? `<span class="sown">${own}</span>` : ''}
-            ${t.money ? `<span class="wmoney num">+${won(t.money)}</span>` : ''}</div>
+            ${bw.total ? `<span class="wmoney num">+${won(bw.total)}</span>` : ''}</div>
           <div class="ssub num">
             <b class="g">완주 ${t.full}일</b> · 이행 ${t.ok} · <b class="r">미이행 ${t.no}</b>${
             t.offDays ? ` · 제외 ${t.offDays}일` : ''}</div>
+          ${bw.total ? `<div class="wbreak num">완주 ${bw.full}일 +${won(bw.dayAmt)}${
+            bw.items.map(b => ` · ${b.name} ${b.n}회 +${won(b.n * b.amt)}`).join('')}</div>` : ''}
           <div class="goals">${t.goals.map(g =>
-            `<span class="goal${g.hit ? ' hit' : ''}">${g.name} <b class="num">${g.n}/${g.tg}</b></span>`
+            `<span class="goal${g.hit ? ' hit' : ''}">${g.name} <b class="num">${
+              g.tg > 0 ? `${g.n}/${g.tg}` : `${g.n}회`}</b></span>`
           ).join('')}</div>
         </div>
         <button type="button" class="lockbtn" data-lock="${w}" data-cs="${cs}"
@@ -1106,9 +1289,9 @@ function renderSettle(){
       </div>`;
     }).join('');
 
-    // 추가 청소 보너스 — 매달 항목 중 bonus 대상이 완료된 건 (3주차가 속한 달 기준)
-    const bmk = monthKey(dayFrom(cs, 14));
-    const bonusItems = MONTHLY.filter(t => t.bonus && monthMark(bmk, t.id) === 1).map(t => t.name);
+    // 추가 청소 보너스
+    const bLines = bonusLines(cs).filter(b => b.monthly);
+    const bTotal = bonusSum(bLines);
 
     return `<li class="cyccard${cur ? ' cur' : ''}${cs === baseStart() ? ' viewing' : ''}"
       data-state="${st}" data-open="${cs}">
@@ -1128,12 +1311,12 @@ function renderSettle(){
         <div class="cfmoney">
           <span>일일 완주 ${sum.full}일 × ${won(DAY_BONUS)}</span>
           <b>+${won(sum.full * DAY_BONUS)}</b></div>
-        ${bonusItems.length ? `<div class="cfmoney">
-          <span>추가 청소 ${bonusItems.length}건 <i>${bonusItems.join(' · ')}</i></span>
-          <b>+${won(bonusItems.length * CLEAN_BONUS)}</b></div>` : ''}
+        ${bLines.map(b => `<div class="cfmoney">
+          <span>${b.name}${b.n > 1 ? ` <i>${b.n}회</i>` : ''}</span>
+          <b>+${won(b.n * b.amt)}</b></div>`).join('')}
         <div class="cfmoney total">
           <span>보너스 합계</span>
-          <b>+${won(sum.full * DAY_BONUS + bonusItems.length * CLEAN_BONUS)}</b></div>
+          <b>+${won(sum.full * DAY_BONUS + bTotal)}</b></div>
       </div>
     </li>`;
   };
@@ -1172,7 +1355,8 @@ function syncField(id, val){
 function row(t, st, extra, subOverride, cf){
   return `<li data-st="${st}" data-cf="${cf ? 1 : 0}">
     <div class="txt">
-      <div class="nm">${t.name}${extra || ''}</div>
+      <div class="nm">${t.name}${extra || ''}${
+        t.bonus ? `<span class="badge bonus num">+${won(t.bonus)}</span>` : ''}</div>
       ${t.sub || subOverride ? `<div class="sb">${t.sub || subOverride}</div>` : ''}
     </div>
     <button type="button" class="mk" data-mk="${t.id}"
@@ -1196,6 +1380,7 @@ document.addEventListener('click', ev => {
   const mk = ev.target.closest('[data-mk]');
   if (mk){
     if (blocked()) return;
+    if (!canExec(selWeek)){ denyExec(); return; }
     const id = mk.dataset.mk;
     const next = (markOf(selDay, id) + 1) % 3;
     setKey('d|' + isoOf(selDay) + '|' + id, next || null);
@@ -1205,6 +1390,7 @@ document.addEventListener('click', ev => {
   const ck = ev.target.closest('[data-ck]');
   if (ck){
     if (blocked()) return;
+    if (!canConf(selWeek)){ denyConf(); return; }
     const id = ck.dataset.ck;
     setKey('c|' + isoOf(selDay) + '|' + id, confOf(selDay, id) ? null : '1');
     return;
@@ -1213,6 +1399,7 @@ document.addEventListener('click', ev => {
   const mm = ev.target.closest('[data-mm]');
   if (mm){
     if (blocked()) return;
+    if (!canExec(selWeek)){ denyExec(); return; }
     const key = monthKey(dateOf(selDay));
     const next = (monthMark(key, mm.dataset.mm) + 1) % 3;
     setKey('m|' + key + '|' + mm.dataset.mm, next || null);
@@ -1222,6 +1409,7 @@ document.addEventListener('click', ev => {
   const cmm = ev.target.closest('[data-cmm]');
   if (cmm){
     if (blocked()) return;
+    if (!canConf(selWeek)){ denyConf(); return; }
     const key = monthKey(dateOf(selDay));
     setKey('cm|' + key + '|' + cmm.dataset.cmm, monthConf(key, cmm.dataset.cmm) ? null : '1');
     return;
@@ -1256,6 +1444,35 @@ document.addEventListener('click', ev => {
     return;
   }
 
+  const ow = ev.target.closest('[data-own]');
+  if (ow){ onOwnerPick(ow.dataset.own); return; }
+
+  const mp = ev.target.closest('[data-me]');
+  if (mp){ setMe(mp.dataset.me); return; }
+
+  // 주간 목표 횟수 증감
+  const gp = ev.target.closest('[data-gplus]'), gm = ev.target.closest('[data-gminus]');
+  if (gp || gm){
+    if (blocked()) return;
+    if (!canExec(selWeek)){ denyExec(); return; }
+    const id = (gp || gm).dataset[gp ? 'gplus' : 'gminus'];
+    const cur = goalCount(baseStart(), selWeek, id);
+    const next = Math.max(0, Math.min(99, cur + (gp ? 1 : -1)));
+    setKey(goalKey(baseStart(), selWeek, id), next || null);
+    return;
+  }
+
+  // 주간 목표 확인
+  const gck = ev.target.closest('[data-gck]');
+  if (gck){
+    if (blocked()) return;
+    if (!canConf(selWeek)){ denyConf(); return; }
+    const id = gck.dataset.gck;
+    setKey(goalConfKey(baseStart(), selWeek, id),
+      goalConf(baseStart(), selWeek, id) ? null : '1');
+    return;
+  }
+
   // 정산완료 / 마감 해제
   const lb = ev.target.closest('[data-lock]');
   if (lb){
@@ -1282,10 +1499,12 @@ document.getElementById('offbtn').addEventListener('click', () => {
 });
 
 /* 주차별 담당자 */
-document.getElementById('ownerin').addEventListener('change', ev => {
-  if (isLocked(selWeek)){ toast(`${selWeek+1}주차는 정산 마감됐어요`); render(); return; }
-  setKey(ownerKeyAt(baseStart(), selWeek), ev.target.value.trim());
-});
+/* 담당자 지정 — 같은 사람을 다시 누르면 해제된다 */
+function onOwnerPick(pn){
+  if (isLocked(selWeek)){ toast(`${selWeek+1}주차는 정산 마감됐어요`); return; }
+  const cur = ownerAt(baseStart(), selWeek);
+  setKey(ownerKeyAt(baseStart(), selWeek), cur === pn ? null : pn);
+}
 
 /* 새 사이클 시작 — 체크 기록은 실제 날짜에 묶여 있어 사라지지 않음 */
 document.getElementById('startin').addEventListener('change', ev => {
@@ -1332,12 +1551,51 @@ document.getElementById('syncurl').addEventListener('change', ev => {
   if (syncUrl) { push().then(pull); } else refreshBadge();
 });
 document.getElementById('syncnow').addEventListener('click', () => { push().then(pull); });
+
+/* 시트의 '항목' 탭을 다시 읽어온다 — 시트를 고친 뒤 새로고침 없이 반영하려고 */
+document.getElementById('cfgreload').addEventListener('click', async () => {
+  if (!syncUrl){ toast('동기화 주소가 없어요'); return; }
+  toast('항목 읽는 중…');
+  await push();
+  await pull();
+  toast(cfgSource === 'sheet'
+    ? `시트에서 항목 ${TASKS.length + MONTHLY.length}개 불러옴`
+    : '시트를 읽지 못해 기본 목록을 씁니다');
+});
 document.getElementById('reset').addEventListener('click', () => {
   if (!confirm('이 기기에 저장된 기록을 지울까요?\n동기화 주소가 설정돼 있으면 시트에서 다시 받아옵니다.')) return;
   S = { start: iso(new Date()) };
   pending = [];
   saveLocal(); selWeek = 0; selDay = 0; render();
   if (syncUrl) pull();
+});
+
+/* 이 기기 사용자 — 기기별로 저장하고, 없으면 진입 시 고르게 한다 */
+function setMe(v){
+  me = v || null;
+  try{ if (me) localStorage.setItem(LM, me); else localStorage.removeItem(LM); }catch(e){}
+  renderGate();
+  render();
+  if (me) toast(`${me} 로 사용 중`);
+}
+
+function renderGate(){
+  const gate = document.getElementById('gate');
+  gate.hidden = !!me;
+  if (!me){
+    document.getElementById('gatebtns').innerHTML =
+      PEOPLE.map(pn => `<button type="button" data-me="${pn}">${pn}</button>`).join('');
+  }
+  const chip = document.getElementById('mechip');
+  chip.hidden = !me;
+  chip.textContent = me || '';
+  document.getElementById('meseg').innerHTML = PEOPLE.map(pn =>
+    `<button type="button" data-me="${pn}" aria-pressed="${pn === me}">${pn}</button>`).join('');
+}
+
+document.getElementById('mechip').addEventListener('click', () => {
+  document.getElementById('setsec').open = true;
+  document.getElementById('setsec').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
 /* 탭 아이콘 */
@@ -1356,6 +1614,7 @@ loadLocal();
   const i = dayIndex(iso(new Date()));
   if (i >= 0 && i < 21){ selWeek = Math.floor(i/7); selDay = i; }
 })();
+renderGate();
 render();
 
 if (syncUrl){ push().then(pull); }
