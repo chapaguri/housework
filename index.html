@@ -166,7 +166,8 @@
   .subseg button[aria-pressed="true"] .sc.done{color:var(--accent);opacity:1}
 
   /* ─ day head ─ */
-  .dayhead{display:flex;align-items:center;gap:8px;margin:20px 0 10px;padding:0 2px}
+  .dayhead{display:flex;align-items:center;gap:8px;margin:20px 0 10px;padding:0 2px;
+    min-height:34px}
   .dayhead h2{font-size:17px;font-weight:800;margin:0;letter-spacing:-.4px}
   .dayhead .todaytag{font-size:11px;font-weight:800;color:var(--accent);
     background:var(--accent-soft);padding:3px 8px;border-radius:999px}
@@ -174,6 +175,13 @@
   .offbtn{border:1.5px solid var(--line);background:var(--surface);border-radius:999px;
     font-size:12px;font-weight:800;padding:5px 11px;color:var(--muted);flex:0 0 auto}
   .offbtn[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
+
+  /* 체크 탭의 주간·월간 제목은 오늘 탭의 날짜 줄과 같은 크기·간격으로 맞춘다 */
+  #wsec, #msec{margin-top:0}
+  #wsec .shead, #msec .shead{display:flex;align-items:center;gap:8px;
+    margin:20px 0 10px;padding:0 2px;min-height:34px}
+  #wsec .shead h2, #msec .shead h2{font-size:17px;letter-spacing:-.4px}
+  #wsec .shead .note, #msec .shead .note{margin-left:auto;font-size:12.5px;font-weight:700}
 
   /* ─ task list ─ */
   .group{margin-bottom:14px}
@@ -344,9 +352,6 @@
     font-size:13.5px;font-weight:700;color:var(--muted)}
   .seg2 button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
   .owner .ol{font-size:11.5px;font-weight:800;color:var(--muted)}
-  .owner .role{font-size:10.5px;font-weight:800;padding:3px 8px;border-radius:999px;
-    background:var(--accent-soft);color:var(--accent);white-space:nowrap}
-  .owner .role.conf{background:var(--surface-2);color:var(--muted)}
 
   /* 내 차례가 아닌 버튼 */
   body.noexec li .mk, body.noexec .stepper{opacity:.3}
@@ -443,7 +448,6 @@
   <div class="days" id="days"></div>
   <div class="owner">
     <div class="seg2" id="ownerseg"></div>
-    <span class="role" id="myrole" hidden></span>
     <div class="tally">
       <span class="pill ok num" id="t-ok">이행 0</span>
       <span class="pill no num" id="t-no">미이행 0</span>
@@ -626,7 +630,7 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
 /* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
-const BUILD = '2026-08-31 16:10';            // 어느 버전이 돌고 있는지 설정에서 확인용
+const BUILD = '2026-08-31 16:15';            // 어느 버전이 돌고 있는지 설정에서 확인용
 const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
 /* 기본 동기화 주소 — 설정에서 비우면 이 기기에만 저장된다 */
@@ -1139,10 +1143,6 @@ function render(){
   const own = ownerAt(baseStart(), selWeek);
   document.getElementById('ownerseg').innerHTML = PEOPLE.map(pn =>
     `<button type="button" data-own="${pn}" aria-pressed="${pn === own}">${pn}</button>`).join('');
-  const role = document.getElementById('myrole');
-  role.hidden = !me || !own;
-  role.textContent = me === own ? '내가 실행' : '내가 확인';
-  role.classList.toggle('conf', me !== own);
 
   const d = dateOf(selDay);
   document.getElementById('dtitle').textContent =
