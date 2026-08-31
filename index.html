@@ -191,11 +191,11 @@
   .offbtn[aria-pressed="true"]{background:var(--warn);border-color:var(--warn);color:#fff}
 
   /* 체크 탭의 주간·월간 제목은 오늘 탭의 날짜 줄과 같은 크기·간격으로 맞춘다 */
-  #wsec, #msec{margin-top:0}
-  #wsec .shead, #msec .shead{display:flex;align-items:center;gap:8px;
+  #wsec{margin-top:0}
+  #wsec .shead{display:flex;align-items:center;gap:8px;
     margin:20px 0 10px;padding:0 2px;min-height:34px}
-  #wsec .shead h2, #msec .shead h2{font-size:17px;letter-spacing:-.4px}
-  #wsec .shead .note, #msec .shead .note{margin-left:auto;font-size:12.5px;font-weight:700}
+  #wsec .shead h2{font-size:17px;letter-spacing:-.4px}
+  #wsec .shead .note{margin-left:auto;font-size:12.5px;font-weight:700}
 
   /* ─ task list ─ */
   .group{margin-bottom:14px}
@@ -492,11 +492,6 @@
   <div id="weeklywrap"></div>
 </section>
 
-<section id="msec">
-  <div class="shead"><h2>매달 항목</h2><span class="note" id="mlabel"></span></div>
-  <ul id="monthly"></ul>
-</section>
-
 <div class="foot" id="checkfoot">
   실행 버튼을 누를 때마다 <b>완료 → 미이행 → 취소</b> 순서로 바뀝니다.
   여행 등으로 집을 비운 날은 날짜 옆 <b>제외</b> 버튼을 누르면 집계에서 빠집니다.
@@ -622,15 +617,6 @@ const DEFAULT_TASKS = [
   {id:'c2', cat:'청소', name:'진공 청소기 · 스팀 청소기', short:'진공', when:'count', target:1},
 ];
 
-/* bonus 에 금액을 넣으면 추가 청소 보너스 대상이 된다 */
-const DEFAULT_MONTHLY = [
-  {id:'m1', cat:'화장실', name:'화장실 전체 청소'},
-  {id:'m2', cat:'주방', name:'냉장고 · 음쓰 정리'},
-  {id:'m3', cat:'세탁', name:'이불 세탁', bonus:10000},
-  {id:'m4', cat:'청소', name:'집안 전체 먼지 제거'},
-  {id:'m5', cat:'청소', name:'창틀 청소', bonus:10000},
-  {id:'m6', cat:'청소', name:'공청기 필터 청소', bonus:10000},
-];
 
 /* ── 용돈 ── */
 const MONTHLY_BASE = 500000;   // 매달 기본 용돈
@@ -638,7 +624,6 @@ const DAY_BONUS    = 10000;    // 하루 전부 이행
 const CLEAN_BONUS  = 10000;    // 추가 청소 기본값 (항목에 금액이 없을 때)
 
 let TASKS = DEFAULT_TASKS;
-let MONTHLY = DEFAULT_MONTHLY;
 let cfgSource = 'default';   // 'sheet' | 'default'
 
 const CATS = ['화장실','주방','거실','세탁','청소'];
@@ -652,7 +637,7 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
 /* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
-const BUILD = '2026-08-31 16:29';            // 어느 버전이 돌고 있는지 설정에서 확인용
+const BUILD = '2026-08-31 16:42';            // 어느 버전이 돌고 있는지 설정에서 확인용
 const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보 (시트에는 이름으로 저장된다)
 const FACE = { '공댕이': '🐰', '탱댕이': '🐷' };   // 좁은 줄에서는 그림만 쓴다
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
@@ -676,7 +661,7 @@ let syncUrl = '';
 let selWeek = 0, selDay = 0;
 let busy = false;
 let view = 'check';      // 'check' | 'settle'
-let sub = 'day';         // 'day' | 'week' | 'month' — 체크 탭 안의 보기
+let sub = 'day';         // 'day' | 'week' — 체크 탭 안의 보기
 let pickStart = null;    // 달력에서 고른 값. '시작하기' 를 누를 때까지 등록되지 않는다
 /* S.start 는 '진행 중인 사이클', viewCycle 은 '체크 탭에서 보고 있는 사이클'.
    둘을 분리해야 새 사이클을 시작한 뒤에도 지난 사이클을 열어볼 수 있다. */
@@ -838,10 +823,8 @@ function offAt(ds){ return !!S['x|' + ds]; }
 function markOf(i, id){ return markAt(isoOf(i), id); }
 /* 확인자 체크 — 실행과 별개로 상대방이 누른다 */
 function confOf(i, id){ return confAt(isoOf(i), id); }
-function monthConf(mk, id){ return Number(S['cm|' + mk + '|' + id] || 0); }
 function isOffDay(i){ return offAt(isoOf(i)); }
 function monthKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
-function monthMark(mk, id){ return Number(S['m|' + mk + '|' + id] || 0); }
 
 /* ══ 항목 정의 로드 ══
    구글 시트의 '항목' 탭 내용을 앱 구조로 변환한다.
@@ -851,7 +834,7 @@ const DOW_CH = { '일':0, '월':1, '화':2, '수':3, '목':4, '금':5, '토':6 }
 
 function parseTaskRows(rows){
   if (!Array.isArray(rows) || !rows.length) return null;
-  const daily = [], monthly = [];
+  const daily = [];
   const seen = {};
 
   for (const r of rows){
@@ -874,8 +857,11 @@ function parseTaskRows(rows){
 
     const bon = bonusAmount(r.bonus);
     if (bon) base.bonus = bon;
-    if (freq === '매달'){
-      monthly.push(base); seen[id] = 1; continue;
+
+    const wm = freq.match(/^([123])\s*주차$/);
+    if (wm){                                   // 그 주차에만 나타나는 주간 목표
+      base.when = 'count'; base.target = 1; base.week = Number(wm[1]) - 1;
+      daily.push(base); seen[id] = 1; continue;
     }
     if (freq === '매일'){ base.when = 'daily'; }
     else if (freq === '주말'){ base.when = 'weekend'; }
@@ -895,8 +881,8 @@ function parseTaskRows(rows){
     daily.push(base); seen[id] = 1;
   }
 
-  if (!daily.length && !monthly.length) return null;
-  return { tasks: daily, monthly: monthly.length ? monthly : DEFAULT_MONTHLY };
+  if (!daily.length) return null;
+  return { tasks: daily };
 }
 
 /* 보너스 열 — 'Y' 는 기본 금액, 숫자를 적으면 그 금액. 비우면 보너스 없음 */
@@ -910,8 +896,8 @@ function bonusAmount(v){
 
 function applyTaskConfig(rows){
   const cfg = parseTaskRows(rows);
-  if (cfg){ TASKS = cfg.tasks; MONTHLY = cfg.monthly; cfgSource = 'sheet'; }
-  else { TASKS = DEFAULT_TASKS; MONTHLY = DEFAULT_MONTHLY; cfgSource = 'default'; }
+  if (cfg){ TASKS = cfg.tasks; cfgSource = 'sheet'; }
+  else { TASKS = DEFAULT_TASKS; cfgSource = 'default'; }
 }
 
 function applies(t, dow, ds){
@@ -964,8 +950,10 @@ function goalCount(startISO, w, id){ return Number(S[goalKey(startISO, w, id)] |
 function goalConf(startISO, w, id){ return Number(S[goalConfKey(startISO, w, id)] || 0); }
 
 /* 주간 횟수 목표 항목. 적용시작일이 그 주보다 뒤면 아직 대상이 아니다 */
-function countTasks(weekEndISO){
-  return TASKS.filter(t => t.when === 'count' && !(t.from && weekEndISO < t.from));
+function countTasks(w, weekEndISO){
+  return TASKS.filter(t => t.when === 'count'
+    && !(t.from && weekEndISO < t.from)
+    && (t.week === undefined || t.week === w));
 }
 
 /* 하루 완주 — 그날 예정된 항목을 전부 이행했는가.
@@ -995,11 +983,6 @@ function weekBonus(startISO, w){
    매달 항목은 그 달에 1회, 일반 항목은 완료한 날마다 금액이 쌓인다. */
 function bonusLines(startISO){
   const out = [];
-  const bmk = monthKey(dayFrom(startISO, 14));
-  for (const t of MONTHLY){
-    if (t.bonus && monthMark(bmk, t.id) === 1)
-      out.push({ name: t.name, n: 1, amt: t.bonus, monthly: true });
-  }
   for (const t of TASKS){
     if (!t.bonus) continue;
     let n = 0;
@@ -1032,7 +1015,7 @@ function tallyWeek(startISO, w){
   }
   // 주간 횟수 목표 — 완주 판정에는 넣지 않고 정산에서 참고용으로 보여준다
   const goals = [];
-  for (const t of countTasks(isoFrom(startISO, w*7+6))){
+  for (const t of countTasks(w, isoFrom(startISO, w*7+6))){
     const n = weekCountAt(startISO, w, t.id);
     const tg = targetAt(startISO, w, t);
     ok += n;
@@ -1134,19 +1117,15 @@ function render(){
   } else fh.textContent = '';
 
   // 등록된 사이클이 없으면 체크 화면을 감춘다
-  ['stripcard','subseg','dayhead','list','wsec','msec','checkfoot'].forEach(id => {
+  ['stripcard','subseg','dayhead','list','wsec','checkfoot'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.hidden = noCyc;
   });
   document.getElementById('nocyc').hidden = !noCyc;
   if (noCyc){ renderSettle(); syncField('syncurl', syncUrl); return; }
 
-  // 3주차 = 매달 항목이 붙는 주. 미완료가 남아 있으면 버튼에 점 표시
-  const mk3 = monthKey(dateOf(14));
-  const mDone = MONTHLY.filter(t => monthMark(mk3, t.id) === 1).length;
   document.getElementById('seg').innerHTML = [0,1,2].map(w =>
-    `<button type="button" data-w="${w}" aria-pressed="${w===selWeek}">${w+1}주차${
-      w===2 && mDone < MONTHLY.length ? '<i class="dotmark"></i>' : ''}</button>`).join('');
+    `<button type="button" data-w="${w}" aria-pressed="${w===selWeek}">${w+1}주차</button>`).join('');
 
   const todayISO = iso(new Date());
   document.getElementById('days').innerHTML = Array.from({length:7}, (_,k) => {
@@ -1215,7 +1194,7 @@ function render(){
         </div>`).join(''));
 
   // 주간 횟수 목표
-  const wtasks = countTasks(isoOf(selWeek*7+6));
+  const wtasks = countTasks(selWeek, isoOf(selWeek*7+6));
   const weeklyRow = t => {
       const tg = targetOf(selWeek, t);
       const n = weekCount(selWeek, t.id);
@@ -1252,38 +1231,19 @@ function render(){
   document.getElementById('wsum').innerHTML = bwk.total
     ? `<b>+${won(bwk.total)}</b>` : '횟수로 채우는 항목';
 
-  // 매달 항목은 3주차에만 (시트 구조: 1·2주차 표는 동일, 3주차 표에만 '매달' 열이 있음)
-  const mk = monthKey(d);
-  document.getElementById('mlabel').textContent = `${d.getMonth()+1}월 · 주말에`;
-  document.getElementById('monthly').innerHTML = MONTHLY.map(t => {
-    const st = monthMark(mk, t.id), cf = monthConf(mk, t.id);
-    return `<li data-st="${st}" data-cf="${cf ? 1 : 0}">
-      <div class="txt">
-        <div class="nm">${t.name}${t.bonus ? `<span class="badge bonus num">+${won(t.bonus)}</span>` : ''}</div>
-        <div class="sb">${t.cat}</div></div>
-      <button type="button" class="mk" data-mm="${t.id}"
-        aria-label="${t.name} 실행 상태 변경">${MARK_ICON[st]}</button>
-      <button type="button" class="ck" data-cmm="${t.id}" aria-pressed="${cf ? 'true' : 'false'}"
-        aria-label="${t.name} 확인">${IC_CHECK}</button></li>`;
-  }).join('');
 
-  // 오늘 / 주간 / 월간 전환 — 매달 항목은 3주차에만 있으므로 그때만 '월간'이 보인다
-  const hasMonth = selWeek === 2;
-  if (sub === 'month' && !hasMonth) sub = 'day';
+  // 오늘 / 주간 전환
   const gAll = wtasks.length;
   const gHit = wtasks.filter(t => {
     const tg2 = targetOf(selWeek, t), n2 = weekCount(selWeek, t.id);
     return tg2 > 0 ? n2 >= tg2 : n2 > 0;
   }).length;
-  const mHit = MONTHLY.filter(t => monthMark(mk, t.id) === 1).length;
   const segs = [
     { k:'day',   label:'오늘',
       cnt: off ? '제외' : (sch.length ? `${done}/${sch.length}` : '없음'),
       ok: !off && sch.length > 0 && done === sch.length },
     { k:'week',  label:'주간', cnt:`${gHit}/${gAll}`, ok: gAll > 0 && gHit === gAll },
   ];
-  if (hasMonth) segs.push({ k:'month', label:'월간',
-    cnt:`${mHit}/${MONTHLY.length}`, ok: mHit === MONTHLY.length });
 
   document.getElementById('subseg').innerHTML = segs.map(g =>
     `<button type="button" data-sub="${g.k}" aria-pressed="${sub === g.k}">
@@ -1293,7 +1253,6 @@ function render(){
   document.getElementById('dayhead').hidden = sub !== 'day';
   document.getElementById('list').hidden = sub !== 'day';
   document.getElementById('wsec').hidden = sub !== 'week';
-  document.getElementById('msec').hidden = sub !== 'month';
 
   // 주차 집계
   const tw = weekTally(selWeek);
@@ -1423,7 +1382,7 @@ function renderCfgInfo(){
   if (a && a.getAttribute('href') !== SHEET_URL) a.href = SHEET_URL;
   const el = document.getElementById('cfginfo');
   if (!el) return;
-  const n = TASKS.length + MONTHLY.length;
+  const n = TASKS.length;
   el.innerHTML = cfgSource === 'sheet'
     ? `구글 시트 <b>항목</b> 탭에서 읽음 · 총 ${n}개. 시트를 고치면 앱에 반영됩니다.`
     : `앱에 내장된 <b>기본 목록</b>으로 동작 중 · 총 ${n}개.
@@ -1480,26 +1439,6 @@ document.addEventListener('click', ev => {
     if (!canConf(selWeek)){ denyConf(); return; }
     const id = ck.dataset.ck;
     setKey('c|' + isoOf(selDay) + '|' + id, confOf(selDay, id) ? null : '1');
-    return;
-  }
-
-  const mm = ev.target.closest('[data-mm]');
-  if (mm){
-    if (blocked()) return;
-    if (!canExec(selWeek)){ denyExec(); return; }
-    const key = monthKey(dateOf(selDay));
-    if (monthConf(key, mm.dataset.mm)){ toast('확인된 항목은 수정할 수 없어요'); return; }
-    const next = (monthMark(key, mm.dataset.mm) + 1) % 3;
-    setKey('m|' + key + '|' + mm.dataset.mm, next || null);
-    return;
-  }
-
-  const cmm = ev.target.closest('[data-cmm]');
-  if (cmm){
-    if (blocked()) return;
-    if (!canConf(selWeek)){ denyConf(); return; }
-    const key = monthKey(dateOf(selDay));
-    setKey('cm|' + key + '|' + cmm.dataset.cmm, monthConf(key, cmm.dataset.cmm) ? null : '1');
     return;
   }
 
@@ -1660,7 +1599,7 @@ document.getElementById('cfgreload').addEventListener('click', async () => {
   await push();
   await pull();
   toast(cfgSource === 'sheet'
-    ? `시트에서 항목 ${TASKS.length + MONTHLY.length}개 불러옴`
+    ? `시트에서 항목 ${TASKS.length}개 불러옴`
     : '시트를 읽지 못해 기본 목록을 씁니다');
 });
 document.getElementById('reset').addEventListener('click', () => {
