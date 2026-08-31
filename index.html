@@ -18,6 +18,7 @@
     --accent:#12705F; --accent-soft:#DCEDE7; --on-accent:#FFFFFF;
     --warn:#B0492E; --warn-soft:#F6E3DC;
     --money:#8A6110; --money-soft:#F4E8CE; --on-money:#FFFFFF;
+    --conf:#1C6AAE; --conf-soft:#DCEAF6;
     --shadow:0 1px 2px rgba(25,30,27,.05), 0 6px 18px rgba(25,30,27,.05);
   }
   @media (prefers-color-scheme: dark){
@@ -27,6 +28,7 @@
       --accent:#4FBFA5; --accent-soft:#12332C; --on-accent:#0C1614;
       --warn:#E08163; --warn-soft:#3A241D;
       --money:#E8BC5A; --money-soft:#392E15; --on-money:#241B06;
+      --conf:#74B8EA; --conf-soft:#132A3B;
       --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
     }
   }
@@ -36,6 +38,7 @@
     --accent:#4FBFA5; --accent-soft:#12332C; --on-accent:#0C1614;
     --warn:#E08163; --warn-soft:#3A241D;
     --money:#E8BC5A; --money-soft:#392E15; --on-money:#241B06;
+    --conf:#74B8EA; --conf-soft:#132A3B;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 18px rgba(0,0,0,.25);
   }
 
@@ -201,8 +204,8 @@
     border:1.5px dashed var(--line);background:transparent;display:grid;place-items:center;
     color:var(--line);transition:background .13s,border-color .13s,color .13s}
   li .ck svg{width:15px;height:15px;display:block}
-  li[data-cf="1"] .ck{border-style:solid;border-color:var(--accent);
-    background:var(--accent-soft);color:var(--accent)}
+  li[data-cf="1"] .ck{border-style:solid;border-color:var(--conf);
+    background:var(--conf-soft);color:var(--conf)}
   @media (prefers-reduced-motion:reduce){ li .mk,li .ck{transition:none} }
 
   /* 주간 목표 횟수 스테퍼 */
@@ -215,13 +218,6 @@
   .stepper .gn{min-width:20px;text-align:center;font-size:15px;font-weight:800}
   li[data-st="1"] .stepper .gn{color:var(--accent)}
 
-  /* 열 제목 */
-  .collegend{display:flex;justify-content:flex-end;gap:10px;padding:0 12px 0 0;
-    margin:0 0 5px;font-size:10px;font-weight:800;letter-spacing:.4px;color:var(--muted)}
-  .collegend span{text-align:center}
-  .collegend .a{width:38px}
-  .collegend.wide .a{width:96px}
-  .collegend .b{width:32px}
 
   .empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;
          padding:22px 16px;text-align:center;color:var(--muted);font-size:14px;line-height:1.6}
@@ -248,7 +244,9 @@
   .rules .sm{color:var(--muted);font-size:12.5px}
 
   /* ─ 정산 ─ */
-  .srow{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--line)}
+  .srow{display:flex;align-items:center;gap:10px;padding:11px 12px;border-top:1px solid var(--line);
+    cursor:pointer}
+  .srow:active{background:var(--surface-2)}
   .srow:first-child{border-top:none}
   .srow .stxt{flex:1;min-width:0}
   .srow .snm{font-size:14.5px;font-weight:800;letter-spacing:-.3px;
@@ -266,6 +264,8 @@
   .goal.hit{color:var(--accent);background:var(--accent-soft);border-color:transparent}
   .srow .ssub .g{color:var(--accent)}
   .srow .ssub .r{color:var(--warn)}
+  .srow .ssub .c{color:var(--conf)}
+  .cycfoot .c{color:var(--conf)}
   .srow[data-locked="1"]{background:var(--surface-2)}
   .lockbtn{flex:0 0 auto;display:flex;align-items:center;gap:5px;
     border:1.5px solid var(--line);background:var(--surface);border-radius:999px;
@@ -394,7 +394,6 @@
     li .nm{font-size:14.5px}
     li .mk{width:34px;height:32px}
     li .ck{width:29px;height:29px}
-    .collegend .a{width:34px} .collegend .b{width:29px}
   }
 </style>
 </head>
@@ -457,18 +456,15 @@
   <button type="button" class="offbtn" id="offbtn" aria-pressed="false">제외</button>
 </div>
 
-<div class="collegend" id="collegend"><span class="a">실행</span><span class="b">확인</span></div>
 <div id="list"></div>
 
 <section id="wsec">
   <div class="shead"><h2>이번 주 목표</h2><span class="note" id="wsum"></span></div>
-  <div class="collegend wide"><span class="a">횟수</span><span class="b">확인</span></div>
   <div id="weeklywrap"></div>
 </section>
 
 <section id="msec">
   <div class="shead"><h2>매달 항목</h2><span class="note" id="mlabel"></span></div>
-  <div class="collegend"><span class="a">실행</span><span class="b">확인</span></div>
   <ul id="monthly"></ul>
 </section>
 
@@ -1103,7 +1099,7 @@ function render(){
   } else fh.textContent = '';
 
   // 등록된 사이클이 없으면 체크 화면을 감춘다
-  ['stripcard','subseg','dayhead','collegend','list','wsec','msec','checkfoot'].forEach(id => {
+  ['stripcard','subseg','dayhead','list','wsec','msec','checkfoot'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.hidden = noCyc;
   });
@@ -1264,7 +1260,6 @@ function render(){
 
   document.getElementById('dayhead').hidden = sub !== 'day';
   document.getElementById('list').hidden = sub !== 'day';
-  document.getElementById('collegend').hidden = sub !== 'day' || off || sch.length === 0;
   document.getElementById('wsec').hidden = sub !== 'week';
   document.getElementById('msec').hidden = sub !== 'month';
 
@@ -1322,7 +1317,7 @@ function renderSettle(){
       sum.goalAll += scored.length; sum.goalHit += scored.filter(g => g.hit).length;
       const wa = dayFrom(cs, w*7), wb = dayFrom(cs, w*7+6);
       const own = ownerAt(cs, w);
-      return `<div class="srow" data-locked="${lk ? 1 : 0}">
+      return `<div class="srow" data-locked="${lk ? 1 : 0}" data-openw="${w}" data-wcs="${cs}">
         <div class="stxt">
           <div class="snm">${w+1}주차
             <span class="sdate num">${md(wa)} ~ ${md(wb)}</span>
@@ -1359,7 +1354,7 @@ function renderSettle(){
       ${rows}
       <div class="cycfoot num">
         <div class="cfline">3주 합계 &nbsp;<b class="g">완주 ${sum.full}일</b> ·
-          이행 ${sum.ok} · <b class="r">미이행 ${sum.no}</b> · 확인 ${sum.conf}${
+          이행 ${sum.ok} · <b class="r">미이행 ${sum.no}</b> · <b class="c">확인 ${sum.conf}</b>${
           sum.offDays ? ` · 제외 ${sum.offDays}일` : ''} ·
           주간 목표 <b class="${sum.goalHit === sum.goalAll ? 'g' : 'r'}">${sum.goalHit}/${sum.goalAll}</b> 달성</div>
         <div class="cfmoney">
@@ -1485,6 +1480,18 @@ document.addEventListener('click', ev => {
     setKey('cyc|' + cs, null);
     if (viewCycle === cs) viewCycle = null;
     toast('사이클 기록 삭제');
+    return;
+  }
+
+  // 정산의 주차 행을 누르면 그 사이클의 해당 주차로 이동한다 (카드보다 먼저 처리)
+  const ow2 = ev.target.closest('[data-openw]');
+  if (ow2 && !ev.target.closest('button')){
+    const wcs = ow2.dataset.wcs, w = Number(ow2.dataset.openw);
+    viewCycle = wcs; selWeek = w;
+    const i = Math.round((parse(iso(new Date())) - parse(wcs)) / 86400000);
+    selDay = (i >= w*7 && i < w*7+7) ? i : w*7;   // 오늘이 그 주 안이면 오늘로
+    sub = 'day'; view = 'check';
+    render(); window.scrollTo(0, 0);
     return;
   }
 
