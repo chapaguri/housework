@@ -626,7 +626,7 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
 /* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
-const BUILD = '2026-08-31 16:08';            // 어느 버전이 돌고 있는지 설정에서 확인용
+const BUILD = '2026-08-31 16:10';            // 어느 버전이 돌고 있는지 설정에서 확인용
 const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
 /* 기본 동기화 주소 — 설정에서 비우면 이 기기에만 저장된다 */
@@ -1196,14 +1196,15 @@ function render(){
       const tg = targetOf(selWeek, t);
       const n = weekCount(selWeek, t.id);
       const hit = tg > 0 ? n >= tg : n > 0;
-      const sub = tg !== t.target ? `제외일 반영 (원래 주 ${t.target}회)` : (t.sub || t.cat);
+      // 구분별로 이미 묶여 있으므로 항목마다 구분을 또 적지 않는다
+      const sub = tg !== t.target ? `제외일 반영 (원래 주 ${t.target}회)` : (t.sub || '');
       const cf = goalConf(baseStart(), selWeek, t.id);
       return `<li data-st="${hit ? 1 : 0}" data-cf="${cf ? 1 : 0}">
         <div class="txt">
           <div class="nm">${t.name}
             <span class="badge${hit ? ' done' : ''} num">${tg > 0 ? `${n} / ${tg}` : `${n}회`}</span>${
               t.bonus ? `<span class="badge bonus num">1회당 +${won(t.bonus)}</span>` : ''}</div>
-          <div class="sb">${sub}</div>
+          ${sub ? `<div class="sb">${sub}</div>` : ''}
         </div>
         <div class="stepper">
           <button type="button" data-gminus="${t.id}" aria-label="${t.name} 횟수 줄이기"
