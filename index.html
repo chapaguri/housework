@@ -385,6 +385,11 @@
   #list[data-locked="1"] ul{opacity:.6}
   #list[data-locked="1"] li .mk,#list[data-locked="1"] li .ck{opacity:.5}
 
+  .updbar{position:fixed;left:50%;transform:translateX(-50%);
+    top:calc(10px + env(safe-area-inset-top));z-index:21;
+    background:var(--ink);color:var(--bg);border:none;border-radius:999px;
+    font-size:13px;font-weight:800;padding:10px 18px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+
   .toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));
     transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--bg);
     font-size:13px;font-weight:700;padding:10px 16px;border-radius:999px;
@@ -556,6 +561,9 @@
 
 </div><!-- /v-settle -->
 
+<button type="button" class="updbar" id="updbar" hidden>
+  새 버전이 있어요 · 눌러서 업데이트</button>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="gate" id="gate" hidden>
@@ -638,7 +646,7 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
 /* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
-const BUILD = '2026-08-31 16:23';            // 어느 버전이 돌고 있는지 설정에서 확인용
+const BUILD = '2026-08-31 16:26';            // 어느 버전이 돌고 있는지 설정에서 확인용
 const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보 (시트에는 이름으로 저장된다)
 const FACE = { '공댕이': '🐰', '탱댕이': '🐷' };   // 좁은 줄에서는 그림만 쓴다
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
@@ -1687,6 +1695,26 @@ document.getElementById('mechip').addEventListener('click', () => {
   document.getElementById('setsec').scrollIntoView({ behavior: 'smooth', block: 'center' });
 });
 
+/* 새 버전 감지.
+   폰 브라우저가 HTML 을 오래 캐시해서 배포가 반영되지 않는 일이 잦다.
+   캐시를 우회해 실제 배포본의 BUILD 를 읽고, 다르면 배너를 띄운다. */
+let updSeen = 0;
+async function checkUpdate(){
+  if (Date.now() - updSeen < 60000) return;      // 1분에 한 번까지
+  updSeen = Date.now();
+  try{
+    const r = await fetch(location.pathname + '?cb=' + Date.now(), { cache: 'no-store' });
+    const t = await r.text();
+    const m = t.match(/const BUILD = '([^']*)'/);
+    if (m && m[1] && m[1] !== BUILD)
+      document.getElementById('updbar').hidden = false;
+  }catch(e){}
+}
+document.getElementById('updbar').addEventListener('click', () => {
+  // 주소를 바꿔야 캐시된 문서를 건너뛴다
+  location.replace(location.pathname + '?v=' + Date.now());
+});
+
 /* 탭 아이콘 */
 document.getElementById('ti-check').innerHTML =
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -1707,7 +1735,10 @@ renderGate();
 render();
 
 if (syncUrl){ push().then(pull); }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pull(); });
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible'){ pull(); checkUpdate(); }
+});
+checkUpdate();
 window.addEventListener('online', () => { push().then(pull); });
 setInterval(() => { if (document.visibilityState === 'visible') pull(); }, 20000);
 </script>
