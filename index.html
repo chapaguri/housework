@@ -118,7 +118,9 @@
            background:var(--accent)}
   .wknav .tally{display:flex;gap:5px;font-size:12px;font-weight:700;
     flex-wrap:wrap;justify-content:flex-end}
-  .pill{padding:3px 8px;border-radius:999px;white-space:nowrap}
+  .pill{padding:3px 8px;border-radius:999px;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:3px}
+  .pill svg{width:11px;height:11px;flex:0 0 auto}
   .pill.ok{background:var(--accent-soft);color:var(--accent)}
   .pill.no{background:var(--warn-soft);color:var(--warn)}
   .pill.offp{background:var(--surface-2);color:var(--muted)}
@@ -145,7 +147,13 @@
   .owner{display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;
          border-top:1px solid var(--line);flex-wrap:wrap}
   .owner .seg2{flex:0 0 auto}
-  .owner .seg2 button{flex:0 0 auto;padding:8px 15px}
+  .owner .seg2 button{flex:0 0 auto;padding:6px 12px;font-size:13px;line-height:1}
+  .face{font-size:17px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji",sans-serif}
+  .face.big{font-size:26px;display:block;margin-bottom:4px}
+  .mechip .face{font-size:14px;margin-right:3px;vertical-align:-1px}
+  .seg2 .face{margin-right:4px;vertical-align:-2px}
+  .owner .seg2 .face{margin:0;font-size:19px;vertical-align:0}
+  .owner .seg2{padding:2px}
   .owner .tally{margin-left:auto;display:flex;gap:5px;font-size:12px;font-weight:700;
     flex-wrap:wrap;justify-content:flex-end}
   .owner input{flex:1;min-width:0;font:inherit;font-size:14px;font-weight:700;
@@ -449,8 +457,8 @@
   <div class="owner">
     <div class="seg2" id="ownerseg"></div>
     <div class="tally">
-      <span class="pill ok num" id="t-ok">이행 0</span>
-      <span class="pill no num" id="t-no">미이행 0</span>
+      <span class="pill ok num" id="t-ok" aria-label="이행"></span>
+      <span class="pill no num" id="t-no" aria-label="미이행"></span>
       <span class="pill offp num" id="t-off" hidden></span>
       <span class="pill money num" id="t-money" hidden></span>
     </div>
@@ -630,8 +638,9 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
 /* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
-const BUILD = '2026-08-31 16:15';            // 어느 버전이 돌고 있는지 설정에서 확인용
-const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보
+const BUILD = '2026-08-31 16:23';            // 어느 버전이 돌고 있는지 설정에서 확인용
+const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보 (시트에는 이름으로 저장된다)
+const FACE = { '공댕이': '🐰', '탱댕이': '🐷' };   // 좁은 줄에서는 그림만 쓴다
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
 /* 기본 동기화 주소 — 설정에서 비우면 이 기기에만 저장된다 */
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1zRJjT09Nga9pDOFIVjj56UGlZD5zimRzyW8SWIk9gs4/edit';
@@ -1142,7 +1151,8 @@ function render(){
   // 주차별 담당자 — 두 사람 중 선택
   const own = ownerAt(baseStart(), selWeek);
   document.getElementById('ownerseg').innerHTML = PEOPLE.map(pn =>
-    `<button type="button" data-own="${pn}" aria-pressed="${pn === own}">${pn}</button>`).join('');
+    `<button type="button" data-own="${pn}" aria-pressed="${pn === own}"
+       aria-label="${pn}" title="${pn}"><span class="face">${FACE[pn]}</span></button>`).join('');
 
   const d = dateOf(selDay);
   document.getElementById('dtitle').textContent =
@@ -1273,11 +1283,11 @@ function render(){
 
   // 주차 집계
   const tw = weekTally(selWeek);
-  document.getElementById('t-ok').textContent = `이행 ${tw.ok}`;
-  document.getElementById('t-no').textContent = `미이행 ${tw.no}`;
+  document.getElementById('t-ok').innerHTML = `${IC_CHECK}${tw.ok}`;
+  document.getElementById('t-no').innerHTML = `${IC_X}${tw.no}`;
   const toff = document.getElementById('t-off');
   toff.hidden = tw.offDays === 0;
-  toff.textContent = `제외 ${tw.offDays}일`;
+  toff.textContent = `제외 ${tw.offDays}`;
   const bwk2 = weekBonus(baseStart(), selWeek);
   const tmoney = document.getElementById('t-money');
   tmoney.hidden = !bwk2.total;
@@ -1661,13 +1671,15 @@ function renderGate(){
   gate.hidden = !!me;
   if (!me){
     document.getElementById('gatebtns').innerHTML =
-      PEOPLE.map(pn => `<button type="button" data-me="${pn}">${pn}</button>`).join('');
+      PEOPLE.map(pn => `<button type="button" data-me="${pn}">
+        <span class="face big">${FACE[pn]}</span>${pn}</button>`).join('');
   }
   const chip = document.getElementById('mechip');
   chip.hidden = !me;
-  chip.textContent = me || '';
+  chip.innerHTML = me ? `<span class="face">${FACE[me]}</span>${me}` : '';
   document.getElementById('meseg').innerHTML = PEOPLE.map(pn =>
-    `<button type="button" data-me="${pn}" aria-pressed="${pn === me}">${pn}</button>`).join('');
+    `<button type="button" data-me="${pn}" aria-pressed="${pn === me}">
+       <span class="face">${FACE[pn]}</span>${pn}</button>`).join('');
 }
 
 document.getElementById('mechip').addEventListener('click', () => {
