@@ -109,14 +109,15 @@
   /* ─ week nav + day strip ─ */
   .stripcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;
              padding:13px 13px 15px;box-shadow:var(--shadow)}
-  .wknav{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+  .wknav{margin-bottom:12px}
   .wknav .seg{display:flex;gap:3px;background:var(--surface-2);border-radius:10px;padding:3px}
-  .wknav .seg button{border:none;background:none;font-size:13px;font-weight:700;
-    padding:5px 10px;border-radius:8px;color:var(--muted);position:relative}
+  .wknav .seg button{flex:1;border:none;background:none;font-size:13px;font-weight:700;
+    padding:7px 4px;border-radius:8px;color:var(--muted);position:relative;white-space:nowrap}
   .wknav .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}
   .dotmark{position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;
            background:var(--accent)}
-  .wknav .tally{margin-left:auto;display:flex;gap:5px;font-size:12px;font-weight:700}
+  .wknav .tally{display:flex;gap:5px;font-size:12px;font-weight:700;
+    flex-wrap:wrap;justify-content:flex-end}
   .pill{padding:3px 8px;border-radius:999px;white-space:nowrap}
   .pill.ok{background:var(--accent-soft);color:var(--accent)}
   .pill.no{background:var(--warn-soft);color:var(--warn)}
@@ -141,9 +142,12 @@
   .day[data-off="1"] .dw{opacity:.55}
   .day[data-off="1"] .dot{background:var(--warn)}
 
-  .owner{display:flex;align-items:center;gap:10px;margin-top:13px;padding-top:13px;
-         border-top:1px solid var(--line)}
-  .owner .ol{font-size:11.5px;font-weight:800;color:var(--muted);flex:0 0 auto;white-space:nowrap}
+  .owner{display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;
+         border-top:1px solid var(--line);flex-wrap:wrap}
+  .owner .seg2{flex:0 0 auto}
+  .owner .seg2 button{flex:0 0 auto;padding:8px 15px}
+  .owner .tally{margin-left:auto;display:flex;gap:5px;font-size:12px;font-weight:700;
+    flex-wrap:wrap;justify-content:flex-end}
   .owner input{flex:1;min-width:0;font:inherit;font-size:14px;font-weight:700;
     background:var(--surface-2);border:1px solid transparent;border-radius:9px;
     padding:7px 10px;color:var(--ink)}
@@ -206,6 +210,9 @@
   li .ck svg{width:15px;height:15px;display:block}
   li[data-cf="1"] .ck{border-style:solid;border-color:var(--conf);
     background:var(--conf-soft);color:var(--conf)}
+  /* 확인이 끝난 항목은 실행을 바꿀 수 없다 */
+  li[data-cf="1"] .mk{opacity:.5}
+  li[data-cf="1"] .stepper{opacity:.5}
   @media (prefers-reduced-motion:reduce){ li .mk,li .ck{transition:none} }
 
   /* 주간 목표 횟수 스테퍼 */
@@ -388,8 +395,8 @@
 
   @media (max-width:360px){
     .wrap{padding-left:10px;padding-right:10px}
-    .wknav .seg button{padding:5px 8px;font-size:12px}
-    .pill{padding:3px 7px;font-size:11px}
+    .wknav .seg button{padding:7px 2px;font-size:12px}
+    .pill{padding:3px 7px;font-size:10.5px}
     .day .dd{font-size:15px}
     li .nm{font-size:14.5px}
     li .mk{width:34px;height:32px}
@@ -432,18 +439,17 @@
 <div class="stripcard" id="stripcard">
   <div class="wknav">
     <div class="seg" id="seg" role="group" aria-label="주차 선택"></div>
+  </div>
+  <div class="days" id="days"></div>
+  <div class="owner">
+    <div class="seg2" id="ownerseg"></div>
+    <span class="role" id="myrole" hidden></span>
     <div class="tally">
       <span class="pill ok num" id="t-ok">이행 0</span>
       <span class="pill no num" id="t-no">미이행 0</span>
       <span class="pill offp num" id="t-off" hidden></span>
       <span class="pill money num" id="t-money" hidden></span>
     </div>
-  </div>
-  <div class="days" id="days"></div>
-  <div class="owner">
-    <span class="ol" id="ownerlabel">담당자</span>
-    <span class="role" id="myrole" hidden></span>
-    <div class="seg2" id="ownerseg"></div>
   </div>
 </div>
 
@@ -1128,7 +1134,6 @@ function render(){
   }).join('');
 
   // 주차별 담당자 — 두 사람 중 선택
-  document.getElementById('ownerlabel').textContent = `${selWeek+1}주차 담당`;
   const own = ownerAt(baseStart(), selWeek);
   document.getElementById('ownerseg').innerHTML = PEOPLE.map(pn =>
     `<button type="button" data-own="${pn}" aria-pressed="${pn === own}">${pn}</button>`).join('');
@@ -1434,6 +1439,7 @@ document.addEventListener('click', ev => {
     if (blocked()) return;
     if (!canExec(selWeek)){ denyExec(); return; }
     const id = mk.dataset.mk;
+    if (confOf(selDay, id)){ toast('확인된 항목은 수정할 수 없어요'); return; }
     const next = (markOf(selDay, id) + 1) % 3;
     setKey('d|' + isoOf(selDay) + '|' + id, next || null);
     return;
@@ -1453,6 +1459,7 @@ document.addEventListener('click', ev => {
     if (blocked()) return;
     if (!canExec(selWeek)){ denyExec(); return; }
     const key = monthKey(dateOf(selDay));
+    if (monthConf(key, mm.dataset.mm)){ toast('확인된 항목은 수정할 수 없어요'); return; }
     const next = (monthMark(key, mm.dataset.mm) + 1) % 3;
     setKey('m|' + key + '|' + mm.dataset.mm, next || null);
     return;
@@ -1520,6 +1527,7 @@ document.addEventListener('click', ev => {
     if (blocked()) return;
     if (!canExec(selWeek)){ denyExec(); return; }
     const id = (gp || gm).dataset[gp ? 'gplus' : 'gminus'];
+    if (goalConf(baseStart(), selWeek, id)){ toast('확인된 항목은 수정할 수 없어요'); return; }
     const cur = goalCount(baseStart(), selWeek, id);
     const next = Math.max(0, Math.min(99, cur + (gp ? 1 : -1)));
     setKey(goalKey(baseStart(), selWeek, id), next || null);
