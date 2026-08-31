@@ -182,11 +182,13 @@
     border-radius:12px;padding:5px}
   .subseg button{flex:1;border:none;background:none;border-radius:9px;padding:9px 4px;
     display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted)}
-  .subseg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);
-    box-shadow:var(--shadow)}
+  .subseg button{opacity:.55}
+  .subseg button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);
+    opacity:1;box-shadow:0 1px 3px rgba(0,0,0,.2)}
   .subseg .sl{font-size:13px;font-weight:800;letter-spacing:-.3px}
   .subseg .sc{font-size:10.5px;font-weight:700;opacity:.75}
-  .subseg button[aria-pressed="true"] .sc.done{color:var(--accent);opacity:1}
+  .subseg button[aria-pressed="true"] .sc{opacity:.9}
+  .subseg button[aria-pressed="true"] .sc.done{opacity:1;font-weight:800}
 
   /* ─ day head ─ */
   .dayhead{display:flex;align-items:center;gap:8px;margin:20px 0 10px;padding:0 2px;
@@ -648,7 +650,7 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
 /* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
-const BUILD = '2026-08-31 16:47';            // 어느 버전이 돌고 있는지 설정에서 확인용
+const BUILD = '2026-08-31 17:05';            // 어느 버전이 돌고 있는지 설정에서 확인용
 const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보 (시트에는 이름으로 저장된다)
 const FACE = { '공댕이': '🐰', '탱댕이': '🐷' };   // 좁은 줄에서는 그림만 쓴다
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
