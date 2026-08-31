@@ -147,7 +147,13 @@
   .owner{display:flex;align-items:center;gap:8px;margin-top:13px;padding-top:13px;
          border-top:1px solid var(--line);flex-wrap:wrap}
   .owner .seg2{flex:0 0 auto}
-  .owner .seg2 button{flex:0 0 auto;padding:6px 12px;font-size:13px;line-height:1}
+  .owner .seg2 button{flex:0 0 auto;padding:6px 12px;font-size:13px;line-height:1;
+    transition:background .12s}
+  /* 이모지는 색을 바꿀 수 없어, 선택되지 않은 쪽을 흐리게 해서 구분한다 */
+  .owner .seg2 button .face{filter:grayscale(1);opacity:.35;transition:filter .12s,opacity .12s}
+  .owner .seg2 button[aria-pressed="true"]{background:var(--accent);
+    box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  .owner .seg2 button[aria-pressed="true"] .face{filter:none;opacity:1}
   .face{font-size:17px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji",sans-serif}
   .face.big{font-size:26px;display:block;margin-bottom:4px}
   .mechip .face{font-size:14px;margin-right:3px;vertical-align:-1px}
@@ -646,7 +652,7 @@ const IC_LOCK  = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" str
   width="15" height="10" rx="2.2"/><path d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"/></svg>`;
 /* 실행 버튼에 들어갈 아이콘 — 0 미체크 / 1 완료 / 2 미이행 */
 const MARK_ICON = [IC_CHECK, IC_CHECK, IC_X];
-const BUILD = '2026-08-31 16:26';            // 어느 버전이 돌고 있는지 설정에서 확인용
+const BUILD = '2026-08-31 16:29';            // 어느 버전이 돌고 있는지 설정에서 확인용
 const PEOPLE = ['공댕이', '탱댕이'];   // 담당자 후보 (시트에는 이름으로 저장된다)
 const FACE = { '공댕이': '🐰', '탱댕이': '🐷' };   // 좁은 줄에서는 그림만 쓴다
 const TOKEN = 't36Bh5n_fJkFlqWam7vMIroC';   // Apps Script 의 TOKEN 과 동일해야 함
